@@ -8,37 +8,36 @@ public class Sale {
 private String saleId;
 private List<Product> products;
 private double totalAmount;
+private String date;
 
 
-public Sale(String saleId, List<Product> products, double totalAmount){
-    this.products=products;
+public Sale(String saleId, List<Product> products, double totalAmount, String date){
     this.saleId=saleId;
-    this.totalAmount=totalAmount;
+    this.totalAmount=calculateTotal();
+    //esto es pa que se verifique que la lista de productos no este vacia
+    this.products = (products != null) ? products : new ArrayList<>();
+    this.date=date;
+
 }
-
-    public String getSaleId() {
-        return saleId;
+//calculo de el total de la compra de un cliente
+    public double calculateTotal(){
+    double sum= 0.0;
+    if(products!=null){
+        for(Product product : products){
+            if(product!=null){
+                sum += product.getPrice();
+            }
+        }
     }
-
-    public void setSaleId(String saleId) {
-        this.saleId = saleId;
+//a
+    return sum;
     }
+    //puro get nomas porque no seria bueno setters aqui, asi se podria modificar y no aguanta
+    public String getSaleId() {return saleId;}
+    public List<Product> getProducts() {return products;}
+    public double getTotalAmount() {return totalAmount;}
+    public String getDate(){return date;}
 
-    public List<Product> getProducts() {
-        return products;
-    }
-
-    public void setProducts(List<Product> products) {
-        this.products = products;
-    }
-
-    public double getTotalAmount() {
-        return totalAmount;
-    }
-
-    public void setTotalAmount(double totalAmount) {
-        this.totalAmount = totalAmount;
-    }
 
 
 
