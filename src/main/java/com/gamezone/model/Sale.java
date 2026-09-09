@@ -9,14 +9,18 @@ private String saleId;
 private List<Product> products;
 private double totalAmount;
 private String date;
+private Seller seller;
+private Customer customer;
 
 
-public Sale(String saleId, List<Product> products, double totalAmount, String date){
+public Sale(String saleId, List<Product> products, double totalAmount, String date, Customer customer, Seller seller){
     this.saleId=saleId;
     this.totalAmount=calculateTotal();
     //esto es pa que se verifique que la lista de productos no este vacia
     this.products = (products != null) ? products : new ArrayList<>();
     this.date=date;
+    this.seller=seller;
+    this.customer=customer;
 
 }
 //calculo de el total de la compra de un cliente
@@ -37,6 +41,8 @@ public Sale(String saleId, List<Product> products, double totalAmount, String da
     public List<Product> getProducts() {return products;}
     public double getTotalAmount() {return totalAmount;}
     public String getDate(){return date;}
+    public Seller getSeller(){return seller;}
+    public Customer getCustomer(){return customer;}
 
 
 
