@@ -20,6 +20,19 @@ public class VideoGame extends Product {
     public String getAgeRating(){
         return ageRating;
     }
+
+    public void setPlatform(String platform) {
+        this.platform = platform;
+    }
+
+    public void setGenre(String genre) {
+        this.genre = genre;
+    }
+
+    public void setAgeRating(String ageRating) {
+        this.ageRating = ageRating;
+    }
+
     @Override
     public String getDescription() {
         return getTitle() + " - " + platform + " - " + genre + " - " + ageRating;
