@@ -1,0 +1,72 @@
+Here is a clean AI Usage Log (Bitácora de Uso de IA) written in English, incorporating hypothetical prompts in Spanish and how the assistant helped resolve fundamental concept gaps and syntax issues.
+
+AI Usage Log (Bitácora de Uso de IA)
+Project: GameZone Unicesar
+
+Developer / Student: Jose Daniel Pinzon Racero
+
+Role: Technical Lead (mondongoCodingPROS)
+
+Date: September 11, 2026
+
+Executive Summary
+During the final integration phase of the "GameZone Unicesar" system, AI was utilized as an interactive pair-programming assistant. The primary goal was to connect the core architectural layers (Model, Persistence, Service, and UI) using Object-Oriented Programming (OOP) principles in Java. The AI helped clarify fundamental Java concepts, resolve method signature mismatches across modules, and generate clean UI components.
+
+Key Learning Objectives & Concept Reminders
+Dependency Injection & Layered Architecture: Reinforcing how repositories feed into service layers, which are then passed into the UI driver (ConsoleMenu) via the entry point (Main).
+
+Constructor Overloading & Argument Signatures: Resolving compiler issues where model classes (Sale, Customer, Seller) required exact parameter types and counts.
+
+Java Generics & Collections: Fixing list type declarations (List) to ensure strong typing across services and UI views.
+
+Package Structure Standards: Ensuring the Main.java class resides in the root package (com.gamezone) rather than nested sub-packages to properly orchestrate all application modules.
+
+Interaction History
+Session 1: Building the Interactive UI
+User Prompt (Spanish):
+
+"ayudame a crear el menu pero yaaaa que se nos hace tarde"
+
+AI Assistance:
+
+Provided a complete ConsoleUI class implementing options for sale registration, transaction history, and catalog navigation.
+
+Injected ProductService, PersonService, and SaleService into the menu constructor to follow proper OOP separation of concerns.
+
+Session 2: Enforcing Language & Naming Standards
+User Prompt (Spanish):
+
+"eso tiene que estar en ingles"
+
+AI Assistance:
+
+Translated all menu prompts, error messages, Javadoc documentation, and variable names into professional English.
+
+Maintained technical accuracy in Javadoc tags (@author, @version, @param).
+
+Session 3: Fixing Model Constructor & Signature Mismatches
+User Prompt (Spanish):
+
+"sigue saliendo eso, que pasa [con el error Expected 6 arguments but found 5 en Sale]"
+
+AI Assistance:
+
+Analyzed compiler error logs to identify missing constructor parameters in the Sale class (totalAmount).
+
+Re-ordered arguments to match the exact definition expected by the model: Sale(id, selectedProducts, totalAmount, currentDate, customer, seller).
+
+Guided the integration of ProductService.findProductById() to avoid direct instantiation errors.
+
+Session 4: Root Package Placement
+User Prompt (Spanish):
+
+"donde deberia de ir ese main? en modulo de UI? ... asi esta bien?"
+
+AI Assistance:
+
+Corrected file placement from src/main/java to src/main/java/com/gamezone/Main.java.
+
+Explained why the entry point must sit at the top of the package hierarchy to maintain access across sub-packages (model, persistence, service, ui).
+
+Impact & Final Outcome
+The AI accelerated debug cycles by reading IDE error frames directly, eliminating runtime syntax issues, and ensuring full compliance with Java standards and clean architecture principles.
