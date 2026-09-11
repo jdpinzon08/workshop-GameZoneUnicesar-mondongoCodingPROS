@@ -1,0 +1,69 @@
+DOCUMENTACIÓN DEL USO DE INTELIGENCIA ARTIFICIAL EN EL DESARROLLO DEL PROYECTO
+
+Estudiante: Juan Diego
+
+Herramienta de IA: Gemini
+
+Proyecto: Taller 2 - GameZoneUnicesar (Módulo Personas)
+
+Caso 1: Gestión de control de versiones y corrección en Git
+Juan Diego:
+
+Mira lo que hice al intentar subir lo realizado a git:
+
+PS C:\Users\holas\IdeaProjects\workshop-GameZoneUnicesar-mondongoCodingPROS> git add src\main\java\com\gamezone\
+
+¿Qué debo de hacer para retroceder, cancelar o remover eso?
+
+Gemini:
+
+Para cancelar ese git add y quitar los archivos del área de preparación (staging) sin borrar tus cambios en el código, usa el siguiente comando en tu terminal:
+
+git restore --staged src\main\java\com\gamezone\
+
+O si prefieres simplemente deshacer todo lo que hayas agregado accidentalmente con git add, puedes usar:
+
+git reset
+
+Cualquiera de los dos devolverá tus archivos al estado de "Untracked" o "Modified", manteniendo tu código intacto.
+
+Caso 2: Adaptación de la capa de persistencia a formato CSV
+Juan Diego:
+
+El PersonRepository debe de trabajar con CSV.
+
+Gemini:
+
+Para guardar una jerarquía de clases (Customer y Seller que heredan de Person) en un solo archivo CSV, el truco está en agregar una columna extra al principio que indique el "Tipo" de persona.
+
+Usaremos BufferedWriter para escribir cadenas separadas por comas (Customer,id,name...) y BufferedReader para leerlas. Al leer, identificamos si la fila inicia con "Customer" o "Seller" para reconstruir el objeto correcto en memoria mediante PersonRepository.
+
+Caso 3: Aclaración de conceptos sobre el parseo de datos (split y parts)
+Juan Diego:
+
+String type = parts[0]; String id = parts[1]; String name = parts[2]; String phoneNumber = parts[3];
+
+¿Qué significa eso de parts y ese type qué es?
+
+Gemini:
+
+parts es un arreglo de texto (String[]) que se crea cuando ejecutas line.split(","). Toma toda la línea del archivo CSV y la "corta" cada vez que encuentra una coma.
+
+parts[0] es el tipo de persona (type), que guarda la palabra "Customer" o "Seller".
+
+parts[1] es el id.
+
+parts[2] es el name, y así sucesivamente.
+
+La variable type nos sirve para evaluar en un if qué clase debemos instanciar al leer cada fila del archivo.
+
+Caso 4: Verificación de arquitectura y desacoplamiento según diagrama UML
+Juan Diego:
+
+¿En el código de PersonService añadiste lo de los archivos CSV? Todo lo que te estoy pidiendo debe de seguir el lineamiento del documento Taller 2 - GameZoneUnicesar.pdf y siguiendo el diagrama de clase. ¿Has tenido en cuenta el pdf y el diagrama?
+
+Gemini:
+
+Tienes toda la razón en cuestionarlo. Revisando estrictamente el diagrama de clases, la clase PersonService no interactúa directamente con los archivos CSV; esa responsabilidad es exclusiva de PersonRepository.
+
+En la arquitectura por capas, PersonService solo se comunica con el repositorio usando repository.saveAll(...) y maneja una lista interna (people), delegando el manejo I/O de archivos al repositorio para cumplir con el diagrama de clases.
