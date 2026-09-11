@@ -13,27 +13,17 @@ import java.util.List;
 public class ProductRepository {
 
     private String filePath;
-
-    /**
-     * Creates a repository using the specified file path.
-     *
-     * @param filePath path where product data will be stored
-     */
+    //verificamos si existe el archivo
     public ProductRepository(String filePath) {
         this.filePath = filePath;
         ensureFileExists();
     }
 
-    /**
-     * Creates a repository using the default products CSV file.
-     */
     public ProductRepository() {
         this("data/product.csv");
     }
 
-    /**
-     * Creates the data directory and CSV file if they do not exist.
-     */
+    //validamos si existe, de no ser así, lo creamos
     private void ensureFileExists() {
         try {
             Path path = Path.of(filePath);
@@ -51,11 +41,7 @@ public class ProductRepository {
         }
     }
 
-    /**
-     * Saves all products to the CSV file.
-     *
-     * @param products list of products to save
-     */
+    //guardamos todos los productos en el archivo
     public void saveAll(List<Product> products) {
         List<String> lines = new ArrayList<>();
 
@@ -98,11 +84,6 @@ public class ProductRepository {
         }
     }
 
-    /**
-     * Loads all products stored in the CSV file.
-     *
-     * @return list of products read from the file
-     */
     public List<Product> findAll() {
         List<Product> products = new ArrayList<>();
 
@@ -129,30 +110,14 @@ public class ProductRepository {
                     String genre = parts[6];
                     String ageRating = parts[7];
 
-                    products.add(new VideoGame(
-                            id,
-                            title,
-                            price,
-                            stockQuantity,
-                            platform,
-                            genre,
-                            ageRating
-                    ));
+                    products.add(new VideoGame(id, title, price, stockQuantity, platform, genre, ageRating));
 
                 } else if ("console".equalsIgnoreCase(type)) {
                     String brand = parts[8];
                     String model = parts[9];
                     String generation = parts[10];
 
-                    products.add(new Console(
-                            id,
-                            title,
-                            price,
-                            stockQuantity,
-                            brand,
-                            model,
-                            generation
-                    ));
+                    products.add(new Console(id, title, price, stockQuantity, brand, model, generation));
                 }
             }
 
