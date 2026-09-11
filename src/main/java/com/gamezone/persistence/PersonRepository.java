@@ -1,44 +1,68 @@
 package com.gamezone.persistence;
 
-import com.gamezone.model.Person;
 import com.gamezone.model.Customer;
+import com.gamezone.model.Person;
 import com.gamezone.model.Seller;
 
-import java.util.List;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.List;
 
+/**
+ * Repository responsible for the persistence of Person objects using CSV format.
+ * Handles saving and retrieving the list of people from a comma-separated file.
+ *
+ * @author Desarrollador 2
+ * @version 1.0
+ */
 public class PersonRepository {
 
     private String filePath;
 
+    /**
+     * Constructs a new PersonRepository with the specified file path.
+     *
+     * @param filePath the path to the CSV file where people data will be stored
+     */
     public PersonRepository(String filePath) {
         this.filePath = filePath;
     }
 
-    public void saveAll(List<Person> people){
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))){
-            for (Person person : people){
-                if (person instanceof Customer){
+    /**
+     * Saves a list of Person objects to the CSV file.
+     * Format for Customer: Customer,id,name,phoneNumber,email
+     * Format for Seller: Seller,id,name,phoneNumber,employeeId,workShift
+     *
+     * @param people the list of persons to save
+     */
+    public void saveAll(List<Person> people) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+            for (Person person : people) {
+                if (person instanceof Customer) {
                     Customer c = (Customer) person;
                     writer.write("Customer," + c.getId() + "," + c.getName() + "," + c.getPhoneNumber() + "," + c.getEmail());
-                } else if (person instanceof Seller){
+                } else if (person instanceof Seller) {
                     Seller s = (Seller) person;
-                    writer.write("Seller, " + s.getId() + "," + s.getName() + "," + s.getPhoneNumber() + "," + s.getEmployeeId() + "," + s.getWorkShift());
+                    writer.write("Seller," + s.getId() + "," + s.getName() + "," + s.getPhoneNumber() + "," + s.getEmployeeId() + "," + s.getWorkShift());
                 }
                 writer.newLine();
             }
         } catch (IOException e) {
-            System.out.println("Error saving people data to CSV file: " + e.getMessage());
+            System.err.println("Error saving people data to CSV: " + e.getMessage());
         }
     }
 
+    /**
+     * Retrieves all Person objects stored in the CSV file.
+     *
+     * @return a list of persons, or an empty list if the file doesn't exist
+     */
     public List<Person> findAll() {
         List<Person> people = new ArrayList<>();
         File file = new File(filePath);
 
         if (!file.exists()) {
-            return people; // Return empty list if file is not created yet
+            return people;
         }
 
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
@@ -46,7 +70,7 @@ public class PersonRepository {
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(",");
 
-                if (parts.length < 5) continue; // Skip malformed lines
+                if (parts.length < 5) continue;
 
                 String type = parts[0];
                 String id = parts[1];
@@ -65,6 +89,7 @@ public class PersonRepository {
         } catch (IOException e) {
             System.err.println("Error loading people data from CSV: " + e.getMessage());
         }
+
         return people;
     }
 }
