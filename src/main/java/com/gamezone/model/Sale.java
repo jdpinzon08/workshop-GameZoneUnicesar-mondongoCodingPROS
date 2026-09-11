@@ -3,7 +3,10 @@ import java.util.List;
 import java.util.ArrayList;
 
 
+
 public class Sale {
+
+
 
 private String saleId;
 private List<Product> products;
