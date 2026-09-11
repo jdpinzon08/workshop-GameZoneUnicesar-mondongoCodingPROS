@@ -1,50 +1,65 @@
 package com.gamezone.model;
-import java.util.List;
-import java.util.ArrayList;
 
+/**
+ * Represents a seller or employee in the GameZone store.
+ * Inherits common personal attributes from the abstract Person class.
+ *
+ * @author Desarrollador 2
+ * @version 1.0
+ */
+public class Seller extends Person {
 
-public class Sale {
+    private String employeeId;
+    private String workShift;
 
-private String saleId;
-private List<Product> products;
-private double totalAmount;
-private String date;
-private Seller seller;
-private Customer customer;
-
-
-public Sale(String saleId, List<Product> products, double totalAmount, String date, Customer customer, Seller seller){
-    this.saleId=saleId;
-    this.totalAmount=calculateTotal();
-    //esto es pa que se verifique que la lista de productos no este vacia
-    this.products = (products != null) ? products : new ArrayList<>();
-    this.date=date;
-    this.seller=seller;
-    this.customer=customer;
-
-}
-//calculo de el total de la compra de un cliente
-    public double calculateTotal(){
-    double sum= 0.0;
-    if(products!=null){
-        for(Product product : products){
-            if(product!=null){
-                sum += product.getPrice();
-            }
-        }
+    /**
+     * Constructs a new Seller with the specified details.
+     *
+     * @param id          the unique identification of the seller
+     * @param name        the full name of the seller
+     * @param phoneNumber the contact phone number of the seller
+     * @param employeeId  the unique employee code
+     * @param workShift   the assigned work shift
+     */
+    public Seller(String id, String name, String phoneNumber, String employeeId, String workShift) {
+        super(id, name, phoneNumber);
+        this.employeeId = employeeId;
+        this.workShift = workShift;
     }
-//a
-    return sum;
+
+    /**
+     * Returns the employee ID of the seller.
+     *
+     * @return the employee ID string
+     */
+    public String getEmployeeId() {
+        return employeeId;
     }
-    //puro get nomas porque no seria bueno setters aqui, asi se podria modificar y no aguanta
-    public String getSaleId() {return saleId;}
-    public List<Product> getProducts() {return products;}
-    public double getTotalAmount() {return totalAmount;}
-    public String getDate(){return date;}
-    public Seller getSeller(){return seller;}
-    public Customer getCustomer(){return customer;}
 
+    /**
+     * Sets or updates the employee ID of the seller.
+     *
+     * @param employeeId the new employee ID to set
+     */
+    public void setEmployeeId(String employeeId) {
+        this.employeeId = employeeId;
+    }
 
+    /**
+     * Returns the work shift of the seller.
+     *
+     * @return the work shift string
+     */
+    public String getWorkShift() {
+        return workShift;
+    }
 
-
+    /**
+     * Sets or updates the work shift of the seller.
+     *
+     * @param workShift the new work shift to set
+     */
+    public void setWorkShift(String workShift) {
+        this.workShift = workShift;
+    }
 }
