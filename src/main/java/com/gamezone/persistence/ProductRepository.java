@@ -13,17 +13,27 @@ import java.util.List;
 public class ProductRepository {
 
     private String filePath;
-    //verificamos si existe el archivo
+
+    /**
+     * Creates a product repository using the specified file path.
+     *
+     * @param filePath path where product data will be stored
+     */
     public ProductRepository(String filePath) {
         this.filePath = filePath;
         ensureFileExists();
     }
 
+    /**
+     * Creates a product repository using the default CSV file.
+     */
     public ProductRepository() {
         this("data/product.csv");
     }
 
-    //validamos si existe, de no ser así, lo creamos
+    /**
+     * Creates the data directory and CSV file if they do not exist.
+     */
     private void ensureFileExists() {
         try {
             Path path = Path.of(filePath);
@@ -41,7 +51,11 @@ public class ProductRepository {
         }
     }
 
-    //guardamos todos los productos en el archivo
+    /**
+     * Saves all products to the CSV file.
+     *
+     * @param products list of products to save
+     */
     public void saveAll(List<Product> products) {
         List<String> lines = new ArrayList<>();
 
@@ -84,6 +98,11 @@ public class ProductRepository {
         }
     }
 
+    /**
+     * Loads all products stored in the CSV file.
+     *
+     * @return list of products read from the file
+     */
     public List<Product> findAll() {
         List<Product> products = new ArrayList<>();
 
