@@ -1,0 +1,180 @@
+# DOCUMENTACIÓN DEL USO DE INTELIGENCIA ARTIFICIAL
+
+## Integrante: Geovanny Santiago Pino Avendaño
+
+## Rol: Desarrollador 1 – Módulo de Productos
+
+## Proyecto: GameZoneUnicesar
+
+### Introducción
+
+Durante el desarrollo del taller se utilizó inteligencia artificial como herramienta de apoyo para resolver dudas relacionadas con el entorno de desarrollo, el manejo de Git y GitHub, la estructura del proyecto y la implementación del módulo asignado.
+
+La IA fue utilizada principalmente como apoyo para comprender los pasos que debían realizarse, solucionar problemas encontrados durante la configuración inicial y aclarar conceptos antes de realizar cambios en el proyecto.
+
+A continuación, se presentan algunos ejemplos de las interacciones realizadas.
+
+---
+
+## Interacción 1 – Identificación del rol dentro del proyecto
+
+**Geovanny:**
+Mi rol dentro del proyecto es el de Desarrollador 1, encargado del módulo de productos. En el taller se me asignó inventario, una clase abstracta base de productos, dos clases derivadas para consolas y videojuegos, persistencia de datos y un servicio con las reglas de negocio. ¿Qué debería hacer primero?
+
+**ChatGPT:**
+Antes de comenzar a escribir código es necesario configurar correctamente el entorno de trabajo. El primer paso es obtener el repositorio, comprobar que Git esté funcionando, verificar Java y Maven y abrir el proyecto en IntelliJ IDEA.
+
+También es importante trabajar sobre una rama propia y no directamente sobre `main` o `develop`. Para el módulo de productos se puede utilizar una rama como:
+
+`feature/product-module`
+
+Posteriormente se debe revisar el diagrama de clases del proyecto para conocer exactamente los atributos, métodos y relaciones que el equipo definió.
+
+**Aporte de la IA:**
+Esta interacción permitió establecer un orden de trabajo antes de comenzar la implementación y comprender que primero debía configurarse correctamente el entorno y el flujo de trabajo con Git.
+
+---
+
+## Interacción 2 – Configuración inicial en IntelliJ IDEA
+
+**Geovanny:**
+Acabo de instalar IntelliJ IDEA en CachyOS y abrí el repositorio. No sé exactamente qué debería revisar primero.
+
+**ChatGPT:**
+Primero se debe comprobar el estado del repositorio mediante Git y verificar las ramas disponibles. También se debe comprobar que Java y Maven estén correctamente instalados.
+
+Después se debe revisar la estructura del proyecto y los archivos que ya fueron creados por el equipo, especialmente `pom.xml` y la documentación ubicada en `docs`.
+
+**Aporte de la IA:**
+La IA ayudó a identificar los elementos importantes que debían revisarse antes de comenzar a programar, evitando realizar cambios innecesarios en el proyecto.
+
+---
+
+## Interacción 3 – Problema con un archivo modificado por IntelliJ
+
+**Geovanny:**
+Ejecuté `git status` y me apareció esto:
+
+```text
+En la rama main
+Tu rama está actualizada con 'origin/main'.
+
+Cambios no rastreados para el commit:
+
+modificados: .idea/misc.xml
+```
+
+¿Qué hago?
+
+**ChatGPT:**
+El archivo `.idea/misc.xml` probablemente fue modificado automáticamente por IntelliJ al abrir el proyecto. Como todavía no se han realizado cambios intencionales en el proyecto, no es necesario realizar un commit de ese archivo.
+
+Se puede restaurar el archivo utilizando:
+
+```bash
+git restore .idea/misc.xml
+```
+
+Después se debe comprobar nuevamente el estado:
+
+```bash
+git status
+```
+
+La intención es dejar el árbol de trabajo limpio antes de comenzar a trabajar sobre la rama correspondiente.
+
+**Aporte de la IA:**
+Esta interacción permitió identificar que el cambio no correspondía al desarrollo del módulo y evitar realizar un commit innecesario.
+
+---
+
+## Interacción 4 – Creación de la rama de trabajo
+
+**Geovanny:**
+El repositorio tiene `main` y `develop`. ¿Cómo debo trabajar para no modificar directamente las ramas principales?
+
+**ChatGPT:**
+Primero se debe cambiar a `develop` y actualizarla:
+
+```bash
+git switch develop
+git pull origin develop
+```
+
+Después se crea una rama propia para el módulo:
+
+```bash
+git switch -c feature/product-module
+```
+
+Finalmente se puede comprobar la rama actual mediante:
+
+```bash
+git branch
+```
+
+La rama que tenga el símbolo `*` será la rama activa.
+
+**Aporte de la IA:**
+La IA permitió comprender y aplicar el flujo de trabajo basado en ramas utilizado por el equipo.
+
+---
+
+## Interacción 5 – Identificación de un problema en el repositorio
+
+**Geovanny:**
+Al revisar el proyecto me di cuenta de que el líder había subido los archivos iniciales, pero no encontraba la carpeta `src`. ¿Qué significa esto?
+
+**ChatGPT:**
+Primero se debe comprobar si la carpeta `src` realmente existe en la rama correspondiente. No es recomendable crearla inmediatamente sin consultar al líder, porque la configuración inicial de la estructura del proyecto puede corresponder al responsable de la configuración técnica.
+
+El proyecto debe terminar teniendo una estructura organizada por capas, incluyendo los paquetes relacionados con `model`, `persistence`, `service` y `ui`.
+
+**Aporte de la IA:**
+La IA ayudó a diferenciar entre un problema del entorno local y un problema relacionado con el contenido del repositorio, evitando modificar unilateralmente la estructura que debía definir el equipo.
+
+---
+
+# Interacción 6 – Comprensión del módulo asignado
+
+**Geovanny:**
+Mi responsabilidad es el módulo de productos. ¿Qué clases debo implementar?
+
+**ChatGPT:**
+El módulo asignado corresponde principalmente a:
+
+```text
+Product
+├── VideoGame
+└── Console
+
+ProductPersistence
+ProductService
+```
+
+`Product` debe funcionar como clase abstracta base, mientras que `VideoGame` y `Console` representan las clases derivadas.
+
+Posteriormente se debe implementar la persistencia de los productos y el servicio encargado de las reglas de negocio, como registrar productos, listar productos y actualizar el stock.
+
+**Aporte de la IA:**
+Esta interacción permitió organizar las responsabilidades del módulo y establecer un orden lógico para su implementación.
+
+---
+
+# Conclusión
+
+El uso de inteligencia artificial durante el desarrollo del taller permitió resolver dudas puntuales y comprender mejor las herramientas utilizadas en el proyecto.
+
+La IA se utilizó principalmente como **herramienta de consulta y orientación**, especialmente para:
+
+* Comprender el flujo de trabajo con Git y GitHub.
+* Crear y cambiar entre ramas.
+* Interpretar mensajes mostrados por Git.
+* Configurar y revisar el proyecto en IntelliJ IDEA.
+* Identificar problemas relacionados con la estructura del repositorio.
+* Comprender las responsabilidades correspondientes al rol de Desarrollador 1.
+* Organizar el orden de implementación del módulo de productos.
+
+La implementación final del código fue realizada dentro del proyecto por el integrante, utilizando las explicaciones obtenidas mediante la IA como apoyo para comprender las decisiones técnicas y solucionar los problemas encontrados durante el desarrollo.
+
+---
