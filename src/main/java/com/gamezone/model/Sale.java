@@ -19,7 +19,7 @@ public class Sale {
         this.products = (products != null) ? products : new ArrayList<>();
         this.totalAmount = calculateTotal();
         this.date = date;
-        // Parseamos el String date a LocalDate para no tener NullPointerException
+
         if (date != null && !date.trim().isEmpty()) {
             this.saleDate = LocalDate.parse(date);
         }
@@ -58,15 +58,5 @@ public class Sale {
         }
         LocalDate currentDate = LocalDate.now();
         return !currentDate.isAfter(this.saleDate.plusDays(30));
-    }
-    public Sale getSaleById(String saleId) {
-        if (saleId != null && !saleId.trim().isEmpty()) {
-            for (Sale sale : sales) {
-                if (saleId.equalsIgnoreCase(sale.getSaleId())) {
-                    return sale;
-                }
-            }
-        }
-        return null;
     }
 }
