@@ -3,11 +3,11 @@ package com.gamezone.model;
 import java.util.List;
 
 /**
- * Representa un control de consola.
+ * Represents a Controller for consoles.
  */
 public class Controller extends Accessory {
 
-    private String connectionType; // ej: "Inalámbrico" o "Alámbrico"
+    private String connectionType; // ej: "Wireless" o "Wired"
 
     public Controller(String id, String title, double price, int stockQuantity, List<String> compatibleConsoles, String connectionType) {
         super(id, title, price, stockQuantity, compatibleConsoles);
@@ -24,6 +24,6 @@ public class Controller extends Accessory {
 
     @Override
     public String getDescription() {
-        return super.getDescription() + " | Conexión: " + connectionType;
+        return super.getDescription() + " | Connection: " + connectionType;
     }
 }
