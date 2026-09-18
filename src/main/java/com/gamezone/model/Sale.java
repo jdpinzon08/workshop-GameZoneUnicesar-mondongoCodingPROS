@@ -59,4 +59,14 @@ public class Sale {
         LocalDate currentDate = LocalDate.now();
         return !currentDate.isAfter(this.saleDate.plusDays(30));
     }
+    public Sale getSaleById(String saleId) {
+        if (saleId != null && !saleId.trim().isEmpty()) {
+            for (Sale sale : sales) {
+                if (saleId.equalsIgnoreCase(sale.getSaleId())) {
+                    return sale;
+                }
+            }
+        }
+        return null;
+    }
 }

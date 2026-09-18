@@ -1,4 +1,4 @@
-package com.gamezone.service;
+    package com.gamezone.service;
 
 import com.gamezone.model.*;
 import com.gamezone.persistence.SaleRepository;
@@ -33,7 +33,6 @@ public class SaleService {
             if (product.getStockQuantity() <= 0) {
                 throw new IllegalArgumentException("Product out of stock: " + product.getTitle());
             }
-        }
 
         for (Product product : products) {
             productService.updateStock(product.getId(), product.getStockQuantity() - 1);
@@ -74,9 +73,8 @@ public class SaleService {
                     result.add(sale);
                 }
             }
+            return result;
         }
-        return result;
-    }
 
     public List<Sale> getSalesBySeller(String sellerId) {
         List<Sale> result = new ArrayList<>();
@@ -86,7 +84,6 @@ public class SaleService {
                     result.add(sale);
                 }
             }
+            return null;
         }
-        return result;
     }
-}
