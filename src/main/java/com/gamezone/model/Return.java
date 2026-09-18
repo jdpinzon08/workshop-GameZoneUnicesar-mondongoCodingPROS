@@ -49,12 +49,12 @@ public class Return {
      */
     public String generateReturnReceipt() {
         StringBuilder sb = new StringBuilder();
-        sb.append("=== COMPROBANTE DE DEVOLUCIÓN ===\n");
-        sb.append("ID Devolución: ").append(id).append("\n");
-        sb.append("Fecha: ").append(returnDate).append("\n");
-        sb.append("ID Venta Original: ").append(sale != null ? sale.getSaleId() : "N/A").append("\n");
-        sb.append("Motivo: ").append(reason).append("\n");
-        sb.append("Productos Devueltos:\n");
+        sb.append("=== RETURN RECEIPT ===\n");
+        sb.append("Return ID: ").append(id).append("\n");
+        sb.append("Date: ").append(returnDate).append("\n");
+        sb.append("Original Sale ID: ").append(sale != null ? sale.getSaleId() : "N/A").append("\n");
+        sb.append("Reason: ").append(reason).append("\n");
+        sb.append("Returned Products:\n");
 
         if (returnedProducts != null) {
             for (Product product : returnedProducts) {
