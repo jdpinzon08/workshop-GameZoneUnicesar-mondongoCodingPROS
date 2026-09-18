@@ -1,4 +1,5 @@
 package com.gamezone.model;
+
 import java.time.LocalDate;
 import java.util.List;
 
@@ -14,14 +15,9 @@ public class Return {
     private double refundAmount;
 
     /**
-     * Constructs a Return instance and automatically Calculates the total refund amount.
-     * @param id id the unique identifier for the return.
-     * @param returnDate the date of the return.
-     * @param sale the sale associated with the return.
-     * @param returnedProducts the list of products returned in the return.
-     * @param reason the reason for the return.
+     * Constructs a Return instance and automatically calculates the total refund amount.
      */
-    public Return(String id, LocalDate returnDate, Sale sale, List<Product> returnedProducts, String reason){
+    public Return(String id, LocalDate returnDate, Sale sale, List<Product> returnedProducts, String reason) {
         this.id = id;
         this.returnDate = returnDate;
         this.sale = sale;
@@ -29,32 +25,47 @@ public class Return {
         this.reason = reason;
         this.refundAmount = calculateRefundAmount();
     }
+
+    /**
+     * Overloaded constructor including refundAmount for loading from persistence.
+     */
+    public Return(String id, LocalDate returnDate, Sale sale, List<Product> returnedProducts, String reason, double refundAmount) {
+        this.id = id;
+        this.returnDate = returnDate;
+        this.sale = sale;
+        this.returnedProducts = returnedProducts;
+        this.reason = reason;
+        this.refundAmount = refundAmount;
+    }
+
     /**
      * Calculates the total refund amount for the return.
-     * @return the calculated total refund amount
      */
-    public double calculateRefundAmount(){
+    public double calculateRefundAmount() {
         if (returnedProducts == null || returnedProducts.isEmpty()) {
             return 0.0;
         }
         double total = 0.0;
         for (Product product : returnedProducts) {
-            total += product.getPrice();
+            if (product != null) {
+                total += product.getPrice();
+            }
         }
+        this.refundAmount = total;
         return total;
     }
+
     /**
-     * Generates a formatted receipt in Spanish detailing the return information
-     * @return a formatted string with return receipt details
+     * Generates a formatted receipt in Spanish detailing the return information.
      */
     public String generateReturnReceipt() {
         StringBuilder sb = new StringBuilder();
-        sb.append("=== RETURN RECEIPT ===\n");
-        sb.append("Return ID: ").append(id).append("\n");
-        sb.append("Date: ").append(returnDate).append("\n");
-        sb.append("Original Sale ID: ").append(sale != null ? sale.getSaleId() : "N/A").append("\n");
-        sb.append("Reason: ").append(reason).append("\n");
-        sb.append("Returned Products:\n");
+        sb.append("=== COMPROBANTE DE DEVOLUCIÓN ===\n");
+        sb.append("ID Devolución: ").append(id).append("\n");
+        sb.append("Fecha: ").append(returnDate).append("\n");
+        sb.append("ID Venta Original: ").append(sale != null ? sale.getSaleId() : "N/A").append("\n");
+        sb.append("Motivo: ").append(reason).append("\n");
+        sb.append("Productos Devueltos:\n");
 
         if (returnedProducts != null) {
             for (Product product : returnedProducts) {
@@ -63,11 +74,12 @@ public class Return {
             }
         }
 
-        sb.append("Refunded Amount: $").append(refundAmount).append("\n");
+        sb.append("Monto Reembolsado: $").append(refundAmount).append("\n");
         sb.append("================================");
         return sb.toString();
     }
-    //getters
+
+    // Getters
     public String getId() {
         return id;
     }
@@ -92,6 +104,10 @@ public class Return {
         return refundAmount;
     }
 
-    public Product getOriginalSale() { return  returnedProducts.get(0); }
+    /**
+     * Returns the original sale associated with the return.
+     */
+    public Sale getOriginalSale() {
+        return this.sale;
     }
-
+}

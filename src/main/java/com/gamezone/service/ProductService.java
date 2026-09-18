@@ -73,6 +73,11 @@ public class ProductService {
         }
         product.setStockQuantity(newStock);
         repository.saveAll(inventory);
-
+    }
+    public void restoreStock(String productId, int quantity) {
+        Product product = findProductById(productId);
+        if (product != null) {
+            updateStock(productId, product.getStockQuantity() + quantity);
+        }
     }
 }
