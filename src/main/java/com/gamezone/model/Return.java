@@ -91,4 +91,7 @@ public class Return {
     public double getRefundAmount() {
         return refundAmount;
     }
-}
+
+    public Product getOriginalSale() { return  returnedProducts.get(0); }
+    }
+
