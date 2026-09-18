@@ -97,6 +97,39 @@ classDiagram
             +getTotalAmount() double
             +calculateTotal() double
         }
+        class Warranty{
+            <<abstract>>
+            -String id
+            -Product product
+            -Sale sale
+            -LocalDate startDate
+            -LocalDate endDate
+            +Warranty(String id,Product product,Sale sale,LocalDate startDate)
+            +getId() String
+            +getProduct() product
+            +getSale() sale
+            +getStartDate() StartDate
+            +getgetEndDate() getEndDate
+            +getDurationInMonths()* int
+            +getWarrantyType()* String
+            +getAdditionalCost()* double
+            +isActive(LocalDate date) boolean
+            +generateWarrantyCertificate() String
+        }
+
+        class BasicWarranty {
+            +BasicWarranty(String id, Product product, Sale sale, LocalDate startDate)
+            +getDurationInMonths() int
+            +getWarrantyType() String
+            +getAdditionalCost() double
+        }
+
+        class ExtendedWarranty {
+            +ExtendedWarranty(String id, Product product, Sale sale, LocalDate startDate)
+            +getDurationInMonths() int
+            +getWarrantyType() String
+            +getAdditionalCost() double
+        }
     }
 
     %% Inheritance Relationships
@@ -104,11 +137,15 @@ classDiagram
     Person <|-- Seller : extends
     Product <|-- VideoGame : extends
     Product <|-- Console : extends
+    Warranty <|-- BasicWarranty : extends
+    Warranty <|-- ExtendedWarranty : extends
 
-    %% Sale Associations
+    %% Associations
     Sale "0..*" -- "1" Customer : purchased by
     Sale "0..*" -- "1" Seller : handled by
     Sale "0..*" -- "1..*" Product : contains
+    Warranty "0..*" --> "1" Product : applies to
+    Warranty "0..*" --> "1" Sale : associated with
 
     %% ----------------------------------------------------
     %% PERSISTENCE LAYER (com.gamezone.persistence)
