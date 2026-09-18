@@ -1,9 +1,9 @@
 package com.gamezone.service;
 
-import com.gamezone.model.Product;
-import com.gamezone.model.Sale;
+import com.gamezone.model.*;
 import com.gamezone.persistence.SaleRepository;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,8 +67,26 @@ public class SaleService {
             int currentStock = product.getStockQuantity();
             productService.updateStock(product.getId(), currentStock - 1);
         }
+        // 3.create a variable for the extra cost
+        double extraCost = 0.0;
+        LocalDate saleDate = LocalDate.now();
 
-        // 3. Save to memory and persist to CSV file
+        // 4. Verify that the product is a console and apply the warranty.
+        for (Product product : sale.getProducts()) {
+            if (product instanceof Console) {
+                boolean wantsExtended = products != null && products.contains(product.getId());
+
+                WarrantyService warrantyService = null;
+                if (wantsExtended) {
+                    ExtendedWarranty ext = warrantyService.assignExtendedWarranty(product, sale, saleDate);
+                    extraCost += ext.getAdditionalCost();
+                } else {
+                    warrantyService.assignBasicWarranty(product, sale, saleDate);
+                }
+            }
+        }
+
+        // 4. Save to memory and persist to CSV file
         sales.add(sale);
         saleRepository.saveAll(sales);
     }
