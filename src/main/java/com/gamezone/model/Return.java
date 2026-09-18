@@ -63,7 +63,7 @@ public class Return {
             }
         }
 
-        sb.append("Monto Reembolsado: $").append(refundAmount).append("\n");
+        sb.append("Refunded Amount: $").append(refundAmount).append("\n");
         sb.append("================================");
         return sb.toString();
     }
