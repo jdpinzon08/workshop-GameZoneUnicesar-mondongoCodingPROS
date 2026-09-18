@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Handles persistence operations for Return entities using a CSV file.
@@ -25,22 +26,11 @@ public class ReturnRepository {
     private final SaleService saleService;
     private final ProductService productService;
 
-    /**
-     * Constructs a ReturnRepository with required service dependencies for data resolution.
-     *
-     * @param saleService    Service to look up sales.
-     * @param productService Service to look up products.
-     */
     public ReturnRepository(SaleService saleService, ProductService productService) {
         this.saleService = saleService;
         this.productService = productService;
     }
 
-    /**
-     * Saves all returns to the CSV file.
-     *
-     * @param returns The list of returns to persist.
-     */
     public void saveAll(List<Return> returns) {
         File file = new File(FILE_PATH);
         File parentDir = file.getParentFile();
@@ -51,17 +41,20 @@ public class ReturnRepository {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
             for (Return ret : returns) {
                 StringBuilder productIds = new StringBuilder();
-                for (int i = 0; i < ret.getReturnedProducts().size(); i++) {
-                    productIds.append(ret.getReturnedProducts().get(i).getId());
-                    if (i < ret.getReturnedProducts().size() - 1) {
-                        productIds.append(";");
+                List<Product> returnedProds = ret.getReturnedProducts();
+                if (returnedProds != null) {
+                    for (int i = 0; i < returnedProds.size(); i++) {
+                        productIds.append(returnedProds.get(i).getId());
+                        if (i < returnedProds.size() - 1) {
+                            productIds.append(";");
+                        }
                     }
                 }
 
-                String line = String.format("%s,%s,%s,%s,%s,%.2f",
+                String line = String.format(Locale.US, "%s,%s,%s,%s,%s,%.2f",
                         ret.getId(),
                         ret.getReturnDate(),
-                        ret.getOriginalSale().getId(),
+                        ret.getOriginalSale() != null ? ret.getOriginalSale().getSaleId() : "",
                         productIds.toString(),
                         ret.getReason(),
                         ret.getRefundAmount());
@@ -73,11 +66,6 @@ public class ReturnRepository {
         }
     }
 
-    /**
-     * Loads all returns from the CSV file.
-     *
-     * @return List of Return objects, or empty list if the file does not exist.
-     */
     public List<Return> loadAll() {
         List<Return> returns = new ArrayList<>();
         File file = new File(FILE_PATH);
@@ -101,7 +89,7 @@ public class ReturnRepository {
                     String reason = parts[4];
                     double refundAmount = Double.parseDouble(parts[5]);
 
-                    Sale sale = (Sale) saleService.getSalesBySeller(saleId);
+                    Sale sale = saleService.getSaleById(saleId);
                     List<Product> products = new ArrayList<>();
                     for (String prodId : productIds) {
                         Product p = productService.findProductById(prodId);
@@ -111,7 +99,7 @@ public class ReturnRepository {
                     }
 
                     if (sale != null) {
-                        Return ret = new Return(id, returnDate, sale, products, reason);
+                        Return ret = new Return(id, returnDate, sale, products, reason, refundAmount);
                         returns.add(ret);
                     }
                 }
