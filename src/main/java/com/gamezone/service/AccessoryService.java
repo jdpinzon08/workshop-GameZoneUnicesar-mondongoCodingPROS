@@ -45,24 +45,24 @@ public class AccessoryService {
     /**
      * Registers a new controller accessory.
      */
-    public void registerController(String id, String title, double price, int stock, List<String> compatibleConsoles, String connectionType) {
-        Controller controller = new Controller(id, title, price, stock, compatibleConsoles, connectionType);
+    public void registerController(String id, String title, double price, int stockQuantity, List<String> compatibleConsoles, String connectionType) {
+        Controller controller = new Controller(id, title, price, stockQuantity, compatibleConsoles, connectionType);
         registerAccessory(controller);
     }
 
     /**
      * Registers a new cable accessory.
      */
-    public void registerCable(String id, String title, double price, int stock, List<String> compatibleConsoles, double length, String connectorType) {
-        Cable cable = new Cable(id, title, price, stock, compatibleConsoles, length, connectorType);
+    public void registerCable(String id, String title, double price, int stockQuantity, List<String> compatibleConsoles, double lengthInMeters, String connectorType) {
+        Cable cable = new Cable(id, title, price, stockQuantity, compatibleConsoles, lengthInMeters, connectorType);
         registerAccessory(cable);
     }
 
     /**
      * Registers a new memory accessory.
      */
-    public void registerMemory(String id, String title, double price, int stock, List<String> compatibleConsoles, int capacity, String memoryType) {
-        Memory memory = new Memory(id, title, price, stock, compatibleConsoles, capacity, memoryType);
+    public void registerMemory(String id, String title, double price, int stockQuantity, List<String> compatibleConsoles, int capacityInGB, String memoryType) {
+        Memory memory = new Memory(id, title, price, stockQuantity, compatibleConsoles, capacityInGB, memoryType);
         registerAccessory(memory);
     }
 
@@ -115,22 +115,22 @@ public class AccessoryService {
     /**
      * Updates the stock quantity for a given accessory.
      *
-     * @param accessoryId The ID of the accessory.
-     * @param quantity The new stock quantity.
+     * @param productId The ID of the accessory product.
+     * @param newStock The new stock quantity.
      * @throws IllegalArgumentException if the accessory is not found.
      */
-    public void updateStock(String accessoryId, int quantity) {
-        Accessory accessory = findById(accessoryId);
+    public void updateStock(String productId, int newStock) {
+        Accessory accessory = findById(productId);
         if (accessory != null) {
             if (productService != null) {
-                productService.updateStock(accessoryId, quantity);
-                accessory.setStockQuantity(quantity);
+                productService.updateStock(productId, newStock);
+                accessory.setStockQuantity(newStock);
             } else {
-                accessory.setStockQuantity(quantity);
+                accessory.setStockQuantity(newStock);
             }
             repository.saveAll(accessories);
         } else {
-            throw new IllegalArgumentException("Accessory not found with ID: " + accessoryId);
+            throw new IllegalArgumentException("Accessory not found with ID: " + productId);
         }
     }
 
