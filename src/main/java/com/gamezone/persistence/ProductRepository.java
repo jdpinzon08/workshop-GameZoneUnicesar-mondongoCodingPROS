@@ -86,7 +86,7 @@ public class ProductRepository {
                         + console.getId() + ","
                         + console.getTitle() + ","
                         + console.getPrice() + ","
-                        + console.getStockQuantity() + ",,,,,"
+                        + console.getStockQuantity() + ",,,,"
                         + console.getBrand() + ","
                         + console.getModel() + ","
                         + console.getGeneration();
