@@ -5,7 +5,9 @@ import com.gamezone.persistence.SaleRepository;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SaleService {
 
@@ -15,9 +17,24 @@ public class SaleService {
     private WarrantyService warrantyService; // Inyectado vía setter
 
     public SaleService(SaleRepository saleRepository, ProductService productService) {
+        this(saleRepository, productService, null);
+    }
+
+    public SaleService(SaleRepository saleRepository, ProductService productService,
+                       PersonService personService) {
         this.saleRepository = saleRepository;
         this.productService = productService;
-        this.sales = new ArrayList<>();
+        List<Customer> customers = personService == null
+                ? new ArrayList<>() : personService.getAllCustomers();
+        List<Seller> sellers = personService == null
+                ? new ArrayList<>() : personService.getAllSellers();
+        this.sales = new ArrayList<>(saleRepository.findAll(
+                productService.getAllProducts(), customers, sellers));
+        for (Sale sale : sales) {
+            if (sale.getCustomer() != null) {
+                sale.getCustomer().addSaleToHistory(sale);
+            }
+        }
     }
 
     public void setWarrantyService(WarrantyService warrantyService) {
@@ -25,20 +42,37 @@ public class SaleService {
     }
 
     public void registerSale(Sale sale, List<String> extendedWarrantyProductIds) {
-        if (sale == null) throw new IllegalArgumentException("Sale cannot be null.");
+        if (sale == null) {
+            throw new IllegalArgumentException("Sale cannot be null.");
+        }
+        if (sale.getSaleId() == null || sale.getSaleId().isBlank()) {
+            throw new IllegalArgumentException("Sale ID cannot be blank.");
+        }
+        if (getSaleById(sale.getSaleId()) != null) {
+            throw new IllegalArgumentException("Sale already exists: " + sale.getSaleId());
+        }
         List<Product> products = sale.getProducts();
         if (products == null || products.isEmpty()) {
             throw new IllegalArgumentException("A sale must contain at least one product.");
         }
 
-        for (Product product : products) {
-            if (product.getStockQuantity() <= 0) {
-                throw new IllegalArgumentException("Product out of stock: " + product.getTitle());
+        Map<String, Integer> quantitiesByProductId = new LinkedHashMap<>();
+        Map<String, Product> productsById = new LinkedHashMap<>();
+        for (Product requestedProduct : products) {
+            Product product = requestedProduct == null ? null
+                    : productService.findProductById(requestedProduct.getId());
+            if (product == null) {
+                throw new IllegalArgumentException("Product is not in inventory: "
+                        + (requestedProduct == null ? "null" : requestedProduct.getId()));
             }
+            quantitiesByProductId.merge(product.getId(), 1, Integer::sum);
+            productsById.put(product.getId(), product);
         }
-
-        for (Product product : products) {
-            productService.updateStock(product.getId(), product.getStockQuantity() - 1);
+        for (Map.Entry<String, Integer> entry : quantitiesByProductId.entrySet()) {
+            Product product = productsById.get(entry.getKey());
+            if (product.getStockQuantity() < entry.getValue()) {
+                throw new IllegalArgumentException("Insufficient stock for product: " + product.getTitle());
+            }
         }
 
         double extraCost = 0.0;
@@ -62,7 +96,15 @@ public class SaleService {
             }
         }
 
+        for (Map.Entry<String, Integer> entry : quantitiesByProductId.entrySet()) {
+            Product product = productsById.get(entry.getKey());
+            productService.updateStock(product.getId(), product.getStockQuantity() - entry.getValue());
+        }
+        sale.setTotalAmount(sale.calculateTotal() + extraCost);
         sales.add(sale);
+        if (sale.getCustomer() != null) {
+            sale.getCustomer().addSaleToHistory(sale);
+        }
         saleRepository.saveAll(sales);
     }
 

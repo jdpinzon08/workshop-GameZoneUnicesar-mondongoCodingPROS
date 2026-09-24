@@ -17,7 +17,7 @@ public class Sale {
     public Sale(String saleId, List<Product> products, double totalAmount, String date, Customer customer, Seller seller) {
         this.saleId = saleId;
         this.products = (products != null) ? products : new ArrayList<>();
-        this.totalAmount = calculateTotal();
+        this.totalAmount = totalAmount;
         this.date = date;
 
         if (date != null && !date.trim().isEmpty()) {
@@ -42,6 +42,7 @@ public class Sale {
     public String getSaleId() { return saleId; }
     public List<Product> getProducts() { return products; }
     public double getTotalAmount() { return totalAmount; }
+    public void setTotalAmount(double totalAmount) { this.totalAmount = totalAmount; }
     public String getDate() { return date; }
     public LocalDate getSaleDate() { return saleDate; }
     public Seller getSeller() { return seller; }
