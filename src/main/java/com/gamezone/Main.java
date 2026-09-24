@@ -1,11 +1,15 @@
 package com.gamezone;
 
+import com.gamezone.persistence.AccessoryRepository;
 import com.gamezone.persistence.PersonRepository;
 import com.gamezone.persistence.ProductRepository;
+import com.gamezone.persistence.ReturnRepository;
 import com.gamezone.persistence.SaleRepository;
 import com.gamezone.persistence.WarrantyRepository;
+import com.gamezone.service.AccessoryService;
 import com.gamezone.service.PersonService;
 import com.gamezone.service.ProductService;
+import com.gamezone.service.ReturnService;
 import com.gamezone.service.SaleService;
 import com.gamezone.service.WarrantyService;
 import com.gamezone.ui.ConsoleMenu;
@@ -13,21 +17,24 @@ import com.gamezone.ui.ConsoleMenu;
 public class Main {
     public static void main(String[] args) {
         ProductRepository productRepository = new ProductRepository();
-        PersonRepository personRepository = new PersonRepository("persons.csv");
+        AccessoryRepository accessoryRepository = new AccessoryRepository(productRepository);
+        PersonRepository personRepository = new PersonRepository("data/persons.csv");
         SaleRepository saleRepository = new SaleRepository();
 
         ProductService productService = new ProductService(productRepository);
         PersonService personService = new PersonService(personRepository);
-        SaleService saleService = new SaleService(saleRepository, productService);
+        AccessoryService accessoryService = new AccessoryService(accessoryRepository, productService);
+        SaleService saleService = new SaleService(saleRepository, productService, personService);
 
-        // 1. Instanciar garantías pasando los servicios que necesita
         WarrantyRepository warrantyRepository = new WarrantyRepository(productService, saleService);
         WarrantyService warrantyService = new WarrantyService(warrantyRepository);
-
-        // 2. Resolver dependencia circular inyectando el servicio de garantías en ventas
         saleService.setWarrantyService(warrantyService);
 
-        ConsoleMenu consoleMenu = new ConsoleMenu(productService, personService, saleService, warrantyService);
+        ReturnRepository returnRepository = new ReturnRepository(saleService, productService);
+        ReturnService returnService = new ReturnService(returnRepository, saleService, productService);
+
+        ConsoleMenu consoleMenu = new ConsoleMenu(productService, personService, saleService,
+                warrantyService, returnService);
         consoleMenu.start();
     }
 }
