@@ -5,6 +5,7 @@ import com.gamezone.model.Cable;
 import com.gamezone.model.Controller;
 import com.gamezone.model.Memory;
 import com.gamezone.persistence.AccessoryRepository;
+import com.gamezone.model.Product;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +18,7 @@ public class AccessoryService {
 
     private final AccessoryRepository repository;
     private final List<Accessory> accessories;
+    private final ProductService productService;
 
     /**
      * Constructs AccessoryService with the injected AccessoryRepository.
@@ -24,7 +26,12 @@ public class AccessoryService {
      * @param repository The repository handling persistence.
      */
     public AccessoryService(AccessoryRepository repository) {
+        this(repository, null);
+    }
+
+    public AccessoryService(AccessoryRepository repository, ProductService productService) {
         this.repository = repository;
+        this.productService = productService;
         this.accessories = repository.loadAll();
     }
 
@@ -33,8 +40,7 @@ public class AccessoryService {
      */
     public void registerController(String id, String title, double price, int stock, List<String> compatibleConsoles, String connectionType) {
         Controller controller = new Controller(id, title, price, stock, compatibleConsoles, connectionType);
-        accessories.add(controller);
-        repository.saveAll(accessories);
+        registerAccessory(controller);
     }
 
     /**
@@ -42,8 +48,7 @@ public class AccessoryService {
      */
     public void registerCable(String id, String title, double price, int stock, List<String> compatibleConsoles, double length, String connectorType) {
         Cable cable = new Cable(id, title, price, stock, compatibleConsoles, length, connectorType);
-        accessories.add(cable);
-        repository.saveAll(accessories);
+        registerAccessory(cable);
     }
 
     /**
@@ -51,8 +56,7 @@ public class AccessoryService {
      */
     public void registerMemory(String id, String title, double price, int stock, List<String> compatibleConsoles, int capacity, String memoryType) {
         Memory memory = new Memory(id, title, price, stock, compatibleConsoles, capacity, memoryType);
-        accessories.add(memory);
-        repository.saveAll(accessories);
+        registerAccessory(memory);
     }
 
     /**
@@ -111,10 +115,27 @@ public class AccessoryService {
     public void updateStock(String accessoryId, int quantity) {
         Accessory accessory = findById(accessoryId);
         if (accessory != null) {
-            accessory.setStockQuantity(quantity);
+            if (productService != null) {
+                productService.updateStock(accessoryId, quantity);
+                accessory.setStockQuantity(quantity);
+            } else {
+                accessory.setStockQuantity(quantity);
+            }
             repository.saveAll(accessories);
         } else {
             throw new IllegalArgumentException("Accessory not found with ID: " + accessoryId);
         }
+    }
+
+    private void registerAccessory(Accessory accessory) {
+        if (productService != null) {
+            Product existingProduct = productService.findProductById(accessory.getId());
+            if (existingProduct != null) {
+                throw new IllegalArgumentException("Product with id " + accessory.getId() + " already exists");
+            }
+            productService.registerProduct(accessory);
+        }
+        accessories.add(accessory);
+        repository.saveAll(accessories);
     }
 }
