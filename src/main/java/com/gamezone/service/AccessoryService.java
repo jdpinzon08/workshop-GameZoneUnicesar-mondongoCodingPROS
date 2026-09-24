@@ -4,8 +4,8 @@ import com.gamezone.model.Accessory;
 import com.gamezone.model.Cable;
 import com.gamezone.model.Controller;
 import com.gamezone.model.Memory;
-import com.gamezone.persistence.AccessoryRepository;
 import com.gamezone.model.Product;
+import com.gamezone.persistence.AccessoryRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +32,14 @@ public class AccessoryService {
     public AccessoryService(AccessoryRepository repository, ProductService productService) {
         this.repository = repository;
         this.productService = productService;
-        this.accessories = repository.loadAll();
+        if (productService == null) {
+            this.accessories = repository.loadAll();
+        } else {
+            this.accessories = productService.getAllProducts().stream()
+                    .filter(Accessory.class::isInstance)
+                    .map(Accessory.class::cast)
+                    .collect(Collectors.toCollection(ArrayList::new));
+        }
     }
 
     /**
