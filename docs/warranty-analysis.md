@@ -19,6 +19,6 @@
 
 * **The additional cost is calculated within the extended warranty subclass; to apply it, a modification is required in the service layer to capture the 10% surcharge and add it to the total.**
 
-5. ***The query for "guarantees nearing expiration" requires iterating over all guarantees and filtering for those with an end date within the next 30 days. In which class is this method located, and what dependencies does it require? Why is this placement consistent with the layered architecture?***
+5. ***The query for warranties nearing expiration filters warranties whose end date falls within a requested number of days. In which class is this method located, and what dependencies does it require? Why is this placement consistent with the layered architecture?***
 
-* **It should be placed in the `WarrantyService` class within the service layer, as this component is responsible for filtering and processing the information. It requires only the start dates and the local date to analyze warranties with end dates falling within the next 30 local days; consequently, it needs access to the warranty repository—that is, the persistence layer.**
+* **It is implemented in `WarrantyService`, which filters the loaded warranties by `endDate` and the current date. `WarrantyService` uses `WarrantyRepository` to load and persist warranties.**
