@@ -1,4 +1,4 @@
-    package com.gamezone.service;
+package com.gamezone.service;
 
 import com.gamezone.model.*;
 import com.gamezone.persistence.SaleRepository;
@@ -27,12 +27,15 @@ public class SaleService {
     public void registerSale(Sale sale, List<String> extendedWarrantyProductIds) {
         if (sale == null) throw new IllegalArgumentException("Sale cannot be null.");
         List<Product> products = sale.getProducts();
-        if (products == null || products.isEmpty()) throw new IllegalArgumentException("A sale must contain at least one product.");
+        if (products == null || products.isEmpty()) {
+            throw new IllegalArgumentException("A sale must contain at least one product.");
+        }
 
         for (Product product : products) {
             if (product.getStockQuantity() <= 0) {
                 throw new IllegalArgumentException("Product out of stock: " + product.getTitle());
             }
+        }
 
         for (Product product : products) {
             productService.updateStock(product.getId(), product.getStockQuantity() - 1);
@@ -45,10 +48,12 @@ public class SaleService {
         if (warrantyService != null) {
             for (Product product : products) {
                 if (product instanceof Console) {
-                    boolean wantsExtended = extendedWarrantyProductIds != null && extendedWarrantyProductIds.contains(product.getId());
+                    boolean wantsExtended = extendedWarrantyProductIds != null
+                            && extendedWarrantyProductIds.contains(product.getId());
 
                     if (wantsExtended) {
-                        ExtendedWarranty ext = warrantyService.assignExtendedWarranty(product, sale, saleDate);
+                        ExtendedWarranty ext =
+                                warrantyService.assignExtendedWarranty(product, sale, saleDate);
                         extraCost += ext.getAdditionalCost();
                     } else {
                         warrantyService.assignBasicWarranty(product, sale, saleDate);
@@ -65,25 +70,46 @@ public class SaleService {
         return new ArrayList<>(sales);
     }
 
+    /** Returns a registered sale by its saleId, or {@code null} when absent. */
+    public Sale getSaleById(String saleId) {
+        if (saleId == null || saleId.trim().isEmpty()) {
+            return null;
+        }
+        for (Sale sale : sales) {
+            if (sale != null && saleId.equalsIgnoreCase(sale.getSaleId())) {
+                return sale;
+            }
+        }
+        return null;
+    }
+
     public List<Sale> getSalesByCustomer(String customerId) {
         List<Sale> result = new ArrayList<>();
+
         if (customerId != null && !customerId.trim().isEmpty()) {
             for (Sale sale : sales) {
-                if (sale.getCustomer() != null && customerId.equalsIgnoreCase(sale.getCustomer().getId())) {
+                if (sale.getCustomer() != null
+                        && customerId.equalsIgnoreCase(sale.getCustomer().getId())) {
                     result.add(sale);
                 }
             }
-            return result;
         }
+
+        return result;
+    }
 
     public List<Sale> getSalesBySeller(String sellerId) {
         List<Sale> result = new ArrayList<>();
+
         if (sellerId != null && !sellerId.trim().isEmpty()) {
             for (Sale sale : sales) {
-                if (sale.getSeller() != null && sellerId.equalsIgnoreCase(sale.getSeller().getId())) {
+                if (sale.getSeller() != null
+                        && sellerId.equalsIgnoreCase(sale.getSeller().getId())) {
                     result.add(sale);
                 }
             }
-            return null;
         }
+
+        return result;
     }
+}
