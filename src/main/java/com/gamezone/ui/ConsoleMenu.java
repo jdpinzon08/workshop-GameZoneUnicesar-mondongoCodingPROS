@@ -129,14 +129,12 @@ public class ConsoleMenu {
         Customer customer = personService.findCustomerById(customerId);
         if (customer == null) {
             customer = new Customer(customerId, "Customer " + customerId, "N/A", "N/A");
-            personService.registerCustomer(customer);
         }
         Seller seller = personService.getAllSellers().stream()
                 .filter(candidate -> candidate.getId().equalsIgnoreCase(sellerId))
                 .findFirst().orElse(null);
         if (seller == null) {
             seller = new Seller(sellerId, "Seller " + sellerId, "N/A", sellerId, "Day");
-            personService.registerSeller(seller);
         }
         String saleId = "SALE-" + (saleService.getAllSales().size() + 1);
         String currentDate = LocalDate.now().toString();
