@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/** Applies sale rules and coordinates inventory, warranty, and sale persistence. */
 public class SaleService {
 
     private final SaleRepository saleRepository;
@@ -16,10 +17,12 @@ public class SaleService {
     private final List<Sale> sales;
     private WarrantyService warrantyService; // Inyectado vía setter
 
+    /** Creates a sale service without a person service. */
     public SaleService(SaleRepository saleRepository, ProductService productService) {
         this(saleRepository, productService, null);
     }
 
+    /** Loads existing sales using the supplied product and person services. */
     public SaleService(SaleRepository saleRepository, ProductService productService,
                        PersonService personService) {
         this.saleRepository = saleRepository;
@@ -37,10 +40,12 @@ public class SaleService {
         }
     }
 
+    /** Sets the service used to assign warranties during sale registration. */
     public void setWarrantyService(WarrantyService warrantyService) {
         this.warrantyService = warrantyService;
     }
 
+    /** Validates and records a sale, applying selected extended warranties. */
     public void registerSale(Sale sale, List<String> extendedWarrantyProductIds) {
         if (sale == null) {
             throw new IllegalArgumentException("Sale cannot be null.");
@@ -108,6 +113,7 @@ public class SaleService {
         saleRepository.saveAll(sales);
     }
 
+    /** Returns a copy of the registered sales. */
     public List<Sale> getAllSales() {
         return new ArrayList<>(sales);
     }
@@ -125,6 +131,7 @@ public class SaleService {
         return null;
     }
 
+    /** Returns sales associated with the given customer ID. */
     public List<Sale> getSalesByCustomer(String customerId) {
         List<Sale> result = new ArrayList<>();
 
@@ -140,6 +147,7 @@ public class SaleService {
         return result;
     }
 
+    /** Returns sales associated with the given seller ID. */
     public List<Sale> getSalesBySeller(String sellerId) {
         List<Sale> result = new ArrayList<>();
 

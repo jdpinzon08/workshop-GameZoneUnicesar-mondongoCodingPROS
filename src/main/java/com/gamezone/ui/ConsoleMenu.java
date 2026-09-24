@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+/** Provides the interactive console interface for GameZone operations. */
 public class ConsoleMenu {
 
     private final ProductService productService;
@@ -27,10 +28,12 @@ public class ConsoleMenu {
     private final ReturnService returnService;
     private final Scanner scanner;
 
+    /** Creates the menu with product, person, sale, and warranty services. */
     public ConsoleMenu(ProductService productService, PersonService personService, SaleService saleService, WarrantyService warrantyService) {
         this(productService, personService, saleService, warrantyService, null);
     }
 
+    /** Creates the menu with all available services. */
     public ConsoleMenu(ProductService productService, PersonService personService,
                        SaleService saleService, WarrantyService warrantyService,
                        ReturnService returnService) {
@@ -42,6 +45,7 @@ public class ConsoleMenu {
         this.scanner = new Scanner(System.in);
     }
 
+    /** Displays the main menu until the user exits. */
     public void start() {
         boolean running = true;
         while (running) {

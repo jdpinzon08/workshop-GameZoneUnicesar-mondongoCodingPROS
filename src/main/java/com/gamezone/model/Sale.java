@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.ArrayList;
 
+/** Represents a completed sale and its customer, seller, products, and date. */
 public class Sale {
 
     private String saleId;
@@ -14,6 +15,7 @@ public class Sale {
     private Customer customer;
     private LocalDate saleDate;
 
+    /** Creates a sale with its recorded total and associated people and products. */
     public Sale(String saleId, List<Product> products, double totalAmount, String date, Customer customer, Seller seller) {
         this.saleId = saleId;
         this.products = (products != null) ? products : new ArrayList<>();
@@ -27,6 +29,7 @@ public class Sale {
         this.customer = customer;
     }
 
+    /** Returns the sum of the prices of the sale's non-null products. */
     public double calculateTotal() {
         double sum = 0.0;
         if (products != null) {
@@ -42,8 +45,10 @@ public class Sale {
     public String getSaleId() { return saleId; }
     public List<Product> getProducts() { return products; }
     public double getTotalAmount() { return totalAmount; }
+    /** Sets the sale total, including any additional charges. */
     public void setTotalAmount(double totalAmount) { this.totalAmount = totalAmount; }
     public String getDate() { return date; }
+    /** Returns the parsed sale date, or {@code null} when the date is unavailable. */
     public LocalDate getSaleDate() { return saleDate; }
     public Seller getSeller() { return seller; }
     public Customer getCustomer() { return customer; }

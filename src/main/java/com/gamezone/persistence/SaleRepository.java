@@ -19,11 +19,13 @@ public class SaleRepository {
 
     private final String filePath;
 
+    /** Uses the specified file to store sale records. */
     public SaleRepository(String filePath) {
         this.filePath = filePath;
         ensureFileExists();
     }
 
+    /** Uses the default sales CSV file. */
     public SaleRepository() {
         this("data/sales.csv");
     }

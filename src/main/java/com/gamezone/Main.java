@@ -14,7 +14,9 @@ import com.gamezone.service.SaleService;
 import com.gamezone.service.WarrantyService;
 import com.gamezone.ui.ConsoleMenu;
 
+/** Starts GameZone and connects its repositories, services, and console menu. */
 public class Main {
+    /** Builds the application components and starts the console interface. */
     public static void main(String[] args) {
         ProductRepository productRepository = new ProductRepository();
         AccessoryRepository accessoryRepository = new AccessoryRepository(productRepository);

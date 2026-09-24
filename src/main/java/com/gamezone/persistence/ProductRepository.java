@@ -14,6 +14,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+/** Reads and writes products, including accessories, in a CSV file. */
 public class ProductRepository {
 
     private String filePath;

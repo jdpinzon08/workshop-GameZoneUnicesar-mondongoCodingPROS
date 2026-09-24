@@ -26,11 +26,13 @@ public class ReturnRepository {
     private final SaleService saleService;
     private final ProductService productService;
 
+    /** Uses the services needed to reconnect returns to sales and products. */
     public ReturnRepository(SaleService saleService, ProductService productService) {
         this.saleService = saleService;
         this.productService = productService;
     }
 
+    /** Writes all supplied returns to the returns CSV file. */
     public void saveAll(List<Return> returns) {
         File file = new File(FILE_PATH);
         File parentDir = file.getParentFile();
@@ -67,6 +69,7 @@ public class ReturnRepository {
         }
     }
 
+    /** Loads returns and reconnects them to their sales and products. */
     public List<Return> loadAll() {
         List<Return> returns = new ArrayList<>();
         File file = new File(FILE_PATH);

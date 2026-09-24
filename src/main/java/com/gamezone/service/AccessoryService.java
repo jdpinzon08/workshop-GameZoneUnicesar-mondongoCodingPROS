@@ -29,6 +29,7 @@ public class AccessoryService {
         this(repository, null);
     }
 
+    /** Loads accessories from the shared product service when available. */
     public AccessoryService(AccessoryRepository repository, ProductService productService) {
         this.repository = repository;
         this.productService = productService;

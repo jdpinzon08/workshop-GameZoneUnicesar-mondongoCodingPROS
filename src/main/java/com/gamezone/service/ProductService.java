@@ -74,6 +74,7 @@ public class ProductService {
         product.setStockQuantity(newStock);
         repository.saveAll(inventory);
     }
+    /** Adds the returned quantity back to an inventory product. */
     public void restoreStock(String productId, int quantity) {
         Product product = findProductById(productId);
         if (product != null) {
