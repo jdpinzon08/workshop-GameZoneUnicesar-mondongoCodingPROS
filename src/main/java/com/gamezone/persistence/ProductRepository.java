@@ -1,6 +1,10 @@
 package com.gamezone.persistence;
 
 import com.gamezone.model.Console;
+import com.gamezone.model.Accessory;
+import com.gamezone.model.Cable;
+import com.gamezone.model.Controller;
+import com.gamezone.model.Memory;
 import com.gamezone.model.Product;
 import com.gamezone.model.VideoGame;
 
@@ -10,6 +14,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+/** Reads and writes products, including accessories, in a CSV file. */
 public class ProductRepository {
 
     private String filePath;
@@ -75,17 +80,34 @@ public class ProductRepository {
                         + videoGame.getPlatform() + ","
                         + videoGame.getGenre() + ","
                         + videoGame.getAgeRating() + ",,,";
-            } else {
+            } else if (product instanceof Console) {
                 Console console = (Console) product;
 
                 line = "console,"
                         + console.getId() + ","
                         + console.getTitle() + ","
                         + console.getPrice() + ","
-                        + console.getStockQuantity() + ",,,,,"
+                        + console.getStockQuantity() + ",,,,"
                         + console.getBrand() + ","
                         + console.getModel() + ","
                         + console.getGeneration();
+            } else if (product instanceof Controller) {
+                Controller controller = (Controller) product;
+                line = accessoryLine("controller", controller,
+                        String.join(";", controller.getCompatibleConsoles()),
+                        controller.getConnectionType(), "");
+            } else if (product instanceof Cable) {
+                Cable cable = (Cable) product;
+                line = accessoryLine("cable", cable,
+                        String.join(";", cable.getCompatibleConsoles()),
+                        Double.toString(cable.getLengthInMeters()), cable.getConnectorType());
+            } else if (product instanceof Memory) {
+                Memory memory = (Memory) product;
+                line = accessoryLine("memory", memory,
+                        String.join(";", memory.getCompatibleConsoles()),
+                        Integer.toString(memory.getCapacityInGB()), memory.getMemoryType());
+            } else {
+                throw new IllegalArgumentException("Unsupported product type: " + product.getClass().getName());
             }
 
             lines.add(line);
@@ -96,6 +118,13 @@ public class ProductRepository {
         } catch (IOException e) {
             throw new RuntimeException("Error saving products", e);
         }
+    }
+
+    private String accessoryLine(String type, Accessory accessory, String compatibleConsoles,
+                                 String detail1, String detail2) {
+        return type + "," + accessory.getId() + "," + accessory.getTitle() + ","
+                + accessory.getPrice() + "," + accessory.getStockQuantity() + ","
+                + compatibleConsoles + "," + detail1 + "," + detail2 + ",,,";
     }
 
     /**
@@ -137,6 +166,27 @@ public class ProductRepository {
                     String generation = parts[10];
 
                     products.add(new Console(id, title, price, stockQuantity, brand, model, generation));
+                } else if ("controller".equalsIgnoreCase(type)
+                        || "cable".equalsIgnoreCase(type)
+                        || "memory".equalsIgnoreCase(type)) {
+                    List<String> compatibleConsoles = parts[5].isEmpty()
+                            ? new ArrayList<>() : List.of(parts[5].split(";", -1));
+                    switch (type.toLowerCase()) {
+                        case "controller":
+                            products.add(new Controller(id, title, price, stockQuantity,
+                                    compatibleConsoles, parts[6]));
+                            break;
+                        case "cable":
+                            products.add(new Cable(id, title, price, stockQuantity,
+                                    compatibleConsoles, Double.parseDouble(parts[6]), parts[7]));
+                            break;
+                        case "memory":
+                            products.add(new Memory(id, title, price, stockQuantity,
+                                    compatibleConsoles, Integer.parseInt(parts[6]), parts[7]));
+                            break;
+                        default:
+                            throw new IllegalStateException("Unhandled accessory type: " + type);
+                    }
                 }
             }
 

@@ -7,7 +7,9 @@ import com.gamezone.persistence.ReturnRepository;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -43,6 +45,12 @@ public class ReturnService {
      * @throws IllegalArgumentException If any validation fails.
      */
     public Return registerReturn(String saleId, List<String> productIds, String reason) {
+        if (productIds == null || productIds.isEmpty()) {
+            throw new IllegalArgumentException("Debe indicar al menos un producto para devolver.");
+        }
+        if (reason == null || reason.isBlank() || reason.contains("\n") || reason.contains("\r")) {
+            throw new IllegalArgumentException("El motivo debe tener texto y ocupar una sola línea.");
+        }
         Sale sale = saleService.getSaleById(saleId);
         if (sale == null) {
             throw new IllegalArgumentException("La venta indicada no existe.");
@@ -52,32 +60,49 @@ public class ReturnService {
             throw new IllegalArgumentException("La devolución supera el plazo máximo permitido de 30 días calendario.");
         }
 
+        Map<String, Integer> purchasedQuantities = new HashMap<>();
+        for (Product product : sale.getProducts()) {
+            purchasedQuantities.merge(product.getId(), 1, Integer::sum);
+        }
+        List<Return> existingReturns = returnRepository.loadAll();
+        Map<String, Integer> alreadyReturnedQuantities = new HashMap<>();
+        for (Return existingReturn : existingReturns) {
+            if (existingReturn.getOriginalSale() != null
+                    && saleId.equalsIgnoreCase(existingReturn.getOriginalSale().getSaleId())) {
+                if (existingReturn.getReturnedProducts() != null) {
+                    for (Product product : existingReturn.getReturnedProducts()) {
+                        alreadyReturnedQuantities.merge(product.getId(), 1, Integer::sum);
+                    }
+                }
+            }
+        }
+
         List<Product> productsToReturn = new ArrayList<>();
-        List<String> originalProductIds = sale.getProducts().stream()
-                .map(Product::getId)
-                .collect(Collectors.toList());
+        Map<String, Integer> requestedQuantities = new HashMap<>();
 
         for (String prodId : productIds) {
-            if (!originalProductIds.contains(prodId)) {
+            Product product = productService.findProductById(prodId);
+            if (product == null || !purchasedQuantities.containsKey(prodId)) {
                 throw new IllegalArgumentException("El producto con ID " + prodId + " no pertenece a la venta original.");
             }
-            Product product = productService.findProductById(prodId);
-            if (product != null) {
-                productsToReturn.add(product);
+            int requested = requestedQuantities.merge(prodId, 1, Integer::sum);
+            int previouslyReturned = alreadyReturnedQuantities.getOrDefault(prodId, 0);
+            if (previouslyReturned + requested > purchasedQuantities.get(prodId)) {
+                throw new IllegalArgumentException("La cantidad del producto " + prodId
+                        + " excede las unidades disponibles para devolución.");
             }
+            productsToReturn.add(product);
         }
 
         String returnId = "RET-" + UUID.randomUUID().toString().substring(0, 8);
         Return returnObj = new Return(returnId, LocalDate.now(), sale, productsToReturn, reason, 0.0);
         returnObj.calculateRefundAmount();
 
+        existingReturns.add(returnObj);
+        returnRepository.saveAll(existingReturns);
         for (Product product : productsToReturn) {
             productService.restoreStock(product.getId(), 1);
         }
-
-        List<Return> allReturns = returnRepository.loadAll();
-        allReturns.add(returnObj);
-        returnRepository.saveAll(allReturns);
 
         return returnObj;
     }

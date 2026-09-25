@@ -4,6 +4,7 @@ import com.gamezone.model.Accessory;
 import com.gamezone.model.Cable;
 import com.gamezone.model.Controller;
 import com.gamezone.model.Memory;
+import com.gamezone.model.Product;
 import com.gamezone.persistence.AccessoryRepository;
 
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ public class AccessoryService {
 
     private final AccessoryRepository repository;
     private final List<Accessory> accessories;
+    private final ProductService productService;
 
     /**
      * Constructs AccessoryService with the injected AccessoryRepository.
@@ -24,35 +26,45 @@ public class AccessoryService {
      * @param repository The repository handling persistence.
      */
     public AccessoryService(AccessoryRepository repository) {
+        this(repository, null);
+    }
+
+    /** Loads accessories from the shared product service when available. */
+    public AccessoryService(AccessoryRepository repository, ProductService productService) {
         this.repository = repository;
-        this.accessories = repository.loadAll();
+        this.productService = productService;
+        if (productService == null) {
+            this.accessories = repository.loadAll();
+        } else {
+            this.accessories = productService.getAllProducts().stream()
+                    .filter(Accessory.class::isInstance)
+                    .map(Accessory.class::cast)
+                    .collect(Collectors.toCollection(ArrayList::new));
+        }
     }
 
     /**
      * Registers a new controller accessory.
      */
-    public void registerController(String id, String title, double price, int stock, List<String> compatibleConsoles, String connectionType) {
-        Controller controller = new Controller(id, title, price, stock, compatibleConsoles, connectionType);
-        accessories.add(controller);
-        repository.saveAll(accessories);
+    public void registerController(String id, String title, double price, int stockQuantity, List<String> compatibleConsoles, String connectionType) {
+        Controller controller = new Controller(id, title, price, stockQuantity, compatibleConsoles, connectionType);
+        registerAccessory(controller);
     }
 
     /**
      * Registers a new cable accessory.
      */
-    public void registerCable(String id, String title, double price, int stock, List<String> compatibleConsoles, double length, String connectorType) {
-        Cable cable = new Cable(id, title, price, stock, compatibleConsoles, length, connectorType);
-        accessories.add(cable);
-        repository.saveAll(accessories);
+    public void registerCable(String id, String title, double price, int stockQuantity, List<String> compatibleConsoles, double lengthInMeters, String connectorType) {
+        Cable cable = new Cable(id, title, price, stockQuantity, compatibleConsoles, lengthInMeters, connectorType);
+        registerAccessory(cable);
     }
 
     /**
      * Registers a new memory accessory.
      */
-    public void registerMemory(String id, String title, double price, int stock, List<String> compatibleConsoles, int capacity, String memoryType) {
-        Memory memory = new Memory(id, title, price, stock, compatibleConsoles, capacity, memoryType);
-        accessories.add(memory);
-        repository.saveAll(accessories);
+    public void registerMemory(String id, String title, double price, int stockQuantity, List<String> compatibleConsoles, int capacityInGB, String memoryType) {
+        Memory memory = new Memory(id, title, price, stockQuantity, compatibleConsoles, capacityInGB, memoryType);
+        registerAccessory(memory);
     }
 
     /**
@@ -104,17 +116,34 @@ public class AccessoryService {
     /**
      * Updates the stock quantity for a given accessory.
      *
-     * @param accessoryId The ID of the accessory.
-     * @param quantity The new stock quantity.
+     * @param productId The ID of the accessory product.
+     * @param newStock The new stock quantity.
      * @throws IllegalArgumentException if the accessory is not found.
      */
-    public void updateStock(String accessoryId, int quantity) {
-        Accessory accessory = findById(accessoryId);
+    public void updateStock(String productId, int newStock) {
+        Accessory accessory = findById(productId);
         if (accessory != null) {
-            accessory.setStockQuantity(quantity);
+            if (productService != null) {
+                productService.updateStock(productId, newStock);
+                accessory.setStockQuantity(newStock);
+            } else {
+                accessory.setStockQuantity(newStock);
+            }
             repository.saveAll(accessories);
         } else {
-            throw new IllegalArgumentException("Accessory not found with ID: " + accessoryId);
+            throw new IllegalArgumentException("Accessory not found with ID: " + productId);
         }
+    }
+
+    private void registerAccessory(Accessory accessory) {
+        if (productService != null) {
+            Product existingProduct = productService.findProductById(accessory.getId());
+            if (existingProduct != null) {
+                throw new IllegalArgumentException("Product with id " + accessory.getId() + " already exists");
+            }
+            productService.registerProduct(accessory);
+        }
+        accessories.add(accessory);
+        repository.saveAll(accessories);
     }
 }

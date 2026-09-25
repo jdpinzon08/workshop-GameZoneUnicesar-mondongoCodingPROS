@@ -2,242 +2,166 @@
 
 ```mermaid
 classDiagram
+    class Person {
+        <<abstract>>
+        -String id
+        -String name
+        -String phoneNumber
+    }
+    class Customer {
+        -String email
+        -List~Sale~ purchaseHistory
+    }
+    class Seller {
+        -String employeeId
+        -String workShift
+    }
+    Person <|-- Customer
+    Person <|-- Seller
 
-    %% ----------------------------------------------------
-    %% MODEL LAYER (com.gamezone.model)
-    %% ----------------------------------------------------
-    namespace Model {
-        class Person {
-            <<abstract>>
-            -String id
-            -String name
-            -String phoneNumber
-            +Person(String id, String name, String phoneNumber)
-            +getId() String
-            +getName() String
-            +getPhoneNumber() String
-            +setId(String id) void
-            +setName(String name) void
-            +setPhoneNumber(String phoneNumber) void
-        }
+    class Product {
+        <<abstract>>
+        -String id
+        -String title
+        -double price
+        -int stockQuantity
+    }
+    class VideoGame {
+        -String platform
+        -String genre
+        -String ageRating
+    }
+    class Console {
+        -String brand
+        -String model
+        -String generation
+    }
+    class Accessory {
+        <<abstract>>
+        -List~String~ compatibleConsoles
+    }
+    class Controller {
+        -String connectionType
+    }
+    class Cable {
+        -double lengthInMeters
+        -String connectorType
+    }
+    class Memory {
+        -int capacityInGB
+        -String memoryType
+    }
+    Product <|-- VideoGame
+    Product <|-- Console
+    Product <|-- Accessory
+    Accessory <|-- Controller
+    Accessory <|-- Cable
+    Accessory <|-- Memory
 
-        class Customer {
-            -String email
-            -List~Sale~ purchaseHistory
-            +Customer(String id, String name, String phoneNumber, String email)
-            +getEmail() String
-            +getPurchaseHistory() List~Sale~
-            +setEmail(String email) void
-            +addSaleToHistory(Sale sale) void
-        }
+    class Sale {
+        -String saleId
+        -List~Product~ products
+        -double totalAmount
+        -String date
+        -Customer customer
+        -Seller seller
+        +getSaleId() String
+        +calculateTotal() double
+    }
+    class Return {
+        -String id
+        -LocalDate returnDate
+        -Sale sale
+        -List~Product~ returnedProducts
+        -String reason
+        -double refundAmount
+    }
+    class Warranty {
+        <<abstract>>
+        -String id
+        -Product product
+        -Sale sale
+        -LocalDate startDate
+        -LocalDate endDate
+    }
+    class BasicWarranty
+    class ExtendedWarranty
+    Warranty <|-- BasicWarranty
+    Warranty <|-- ExtendedWarranty
+    Sale "0..*" --> "1" Customer
+    Sale "0..*" --> "1" Seller
+    Sale "1" o-- "1..*" Product
+    Return "0..*" --> "1" Sale
+    Return "0..*" o-- "1..*" Product
+    Warranty "0..*" --> "1" Product
+    Warranty "0..*" --> "1" Sale
 
-        class Seller {
-            -String employeeId
-            -String workShift
-            +Seller(String id, String name, String phoneNumber, String employeeId, String workShift)
-            +getEmployeeId() String
-            +getWorkShift() String
-            +setEmployeeId(String employeeId) void
-            +setWorkShift(String workShift) void
-        }
-
-        class Product {
-            <<abstract>>
-            -String id
-            -String title
-            -double price
-            -int stockQuantity
-            +Product(String id, String title, double price, int stockQuantity)
-            +getId() String
-            +getTitle() String
-            +getPrice() double
-            +getStockQuantity() int
-            +setId(String id) void
-            +setTitle(String title) void
-            +setPrice(double price) void
-            +setStockQuantity(int stockQuantity) void
-            +getDescription()* String
-        }
-
-        class VideoGame {
-            -String platform
-            -String genre
-            -String ageRating
-            +VideoGame(String id, String title, double price, int stockQuantity, String platform, String genre, String ageRating)
-            +getPlatform() String
-            +getGenre() String
-            +getAgeRating() String
-            +getDescription() String
-        }
-
-        class Console {
-            -String brand
-            -String model
-            -String generation
-            +Console(String id, String title, double price, int stockQuantity, String brand, String model, String generation)
-            +getBrand() String
-            +getModel() String
-            +getGeneration() String
-            +getDescription() String
-        }
-
-        class Sale {
-            -String saleId
-            -String date
-            -Customer customer
-            -Seller seller
-            -List~Product~ products
-            -double totalAmount
-            +Sale(String saleId, String date, Customer customer, Seller seller, List~Product~ products)
-            +getSaleId() String
-            +getDate() String
-            +getCustomer() Customer
-            +getSeller() Seller
-            +getProducts() List~Product~
-            +getTotalAmount() double
-            +calculateTotal() double
-        }
-        class Warranty{
-            <<abstract>>
-            -String id
-            -Product product
-            -Sale sale
-            -LocalDate startDate
-            -LocalDate endDate
-            +Warranty(String id,Product product,Sale sale,LocalDate startDate)
-            +getId() String
-            +getProduct() product
-            +getSale() sale
-            +getStartDate() StartDate
-            +getgetEndDate() getEndDate
-            +getDurationInMonths()* int
-            +getWarrantyType()* String
-            +getAdditionalCost()* double
-            +isActive(LocalDate date) boolean
-            +generateWarrantyCertificate() String
-        }
-
-        class BasicWarranty {
-            +BasicWarranty(String id, Product product, Sale sale, LocalDate startDate)
-            +getDurationInMonths() int
-            +getWarrantyType() String
-            +getAdditionalCost() double
-        }
-
-        class ExtendedWarranty {
-            +ExtendedWarranty(String id, Product product, Sale sale, LocalDate startDate)
-            +getDurationInMonths() int
-            +getWarrantyType() String
-            +getAdditionalCost() double
-        }
+    class ProductRepository {
+        +saveAll(List~Product~) void
+        +findAll() List~Product~
+    }
+    class AccessoryRepository {
+        +saveAll(List~Accessory~) void
+        +loadAll() List~Accessory~
+    }
+    class SaleRepository {
+        +saveAll(List~Sale~) void
+        +findAll(products, customers, sellers) List~Sale~
+    }
+    class PersonRepository {
+        +saveAll(List~Person~) void
+        +findAll() List~Person~
+    }
+    class ReturnRepository {
+        +saveAll(List~Return~) void
+        +loadAll() List~Return~
+    }
+    class WarrantyRepository {
+        +saveAll(List~Warranty~) void
+        +loadAll() List~Warranty~
     }
 
-    %% Inheritance Relationships
-    Person <|-- Customer : extends
-    Person <|-- Seller : extends
-    Product <|-- VideoGame : extends
-    Product <|-- Console : extends
-    Warranty <|-- BasicWarranty : extends
-    Warranty <|-- ExtendedWarranty : extends
-
-    %% Associations
-    Sale "0..*" -- "1" Customer : purchased by
-    Sale "0..*" -- "1" Seller : handled by
-    Sale "0..*" -- "1..*" Product : contains
-    Warranty "0..*" --> "1" Product : applies to
-    Warranty "0..*" --> "1" Sale : associated with
-
-    %% ----------------------------------------------------
-    %% PERSISTENCE LAYER (com.gamezone.persistence)
-    %% ----------------------------------------------------
-    namespace Persistence {
-        class ProductRepository {
-            -String filePath
-            +saveAll(List~Product~ products) void
-            +findAll() List~Product~
-        }
-
-        class PersonRepository {
-            -String filePath
-            +saveAll(List~Person~ people) void
-            +findAll() List~Person~
-        }
-
-        class SaleRepository {
-            -String filePath
-            +saveAll(List~Sale~ sales) void
-            +findAll() List~Sale~
-        }
+    class ProductService
+    class AccessoryService
+    class SaleService {
+        +registerSale(Sale, List~String~) void
+        +getSaleById(String saleId) Sale
+        +getAllSales() List~Sale~
+        +getSalesByCustomer(String customerId) List~Sale~
+        +getSalesBySeller(String sellerId) List~Sale~
     }
-
-    %% Persistence Dependencies on Model
-    ProductRepository ..> Product : persists
-    PersonRepository ..> Person : persists
-    SaleRepository ..> Sale : persists
-
-    %% ----------------------------------------------------
-    %% SERVICE LAYER (com.gamezone.service)
-    %% ----------------------------------------------------
-    namespace Service {
-        class ProductService {
-            -ProductRepository repository
-            -List~Product~ inventory
-            +registerProduct(Product product) void
-            +getAllProducts() List~Product~
-            +findProductById(String id) Product
-            +updateStock(String productId, int newStock) void
-        }
-
-        class PersonService {
-            -PersonRepository repository
-            -List~Person~ people
-            +registerCustomer(Customer customer) void
-            +getAllCustomers() List~Customer~
-            +getAllSellers() List~Seller~
-            +findCustomerById(String id) Customer
-            +findSellerById(String employeeId) Seller
-        }
-
-        class SaleService {
-            -SaleRepository saleRepository
-            -ProductService productService
-            -PersonService personService
-            -List~Sale~ salesHistory
-            +processSale(String customerId, String sellerId, List~String~ productIds) Sale
-            +getAllSales() List~Sale~
-            +getSalesByCustomer(String customerId) List~Sale~
-            +getSalesBySeller(String sellerId) List~Sale~
-        }
+    class ReturnService {
+        +registerReturn(String saleId, List~String~ productIds, String reason) Return
     }
+    class WarrantyService
+    class PersonService
+    class ConsoleMenu
+    class Main
 
-    %% Service Layer Dependencies
-    ProductService --> ProductRepository : uses
-    PersonService --> PersonRepository : uses
-    SaleService --> SaleRepository : uses
-    SaleService --> ProductService : uses
-    SaleService --> PersonService : uses
-    ProductService ..> Product : manages
-    PersonService ..> Person : manages
-    SaleService ..> Sale : processes
-
-    %% ----------------------------------------------------
-    %% USER INTERFACE LAYER (com.gamezone.ui)
-    %% ----------------------------------------------------
-    namespace UI {
-        class ConsoleMenu {
-            -ProductService productService
-            -PersonService personService
-            -SaleService saleService
-            +start() void
-            -showMainMenu() void
-            -handleProductMenu() void
-            -handlePersonMenu() void
-            -handleSaleMenu() void
-        }
-    }
-
-    %% UI Layer Dependencies
-    ConsoleMenu --> ProductService : uses
-    ConsoleMenu --> PersonService : uses
-    ConsoleMenu --> SaleService : uses
+    ProductService --> ProductRepository
+    AccessoryService --> AccessoryRepository
+    PersonService --> PersonRepository
+    AccessoryRepository --> ProductRepository : shared product CSV
+    SaleService --> SaleRepository
+    SaleService --> ProductService
+    ReturnService --> ReturnRepository
+    ReturnService --> SaleService
+    ReturnService --> ProductService
+    ReturnRepository --> SaleService : getSaleById(saleId)
+    ReturnRepository --> ProductService : resolve productId
+    WarrantyService --> WarrantyRepository
+    WarrantyRepository --> SaleService : getSaleById(saleId)
+    WarrantyRepository --> ProductService
+    SaleService ..> WarrantyService : warranty assignment
+    ConsoleMenu --> SaleService
+    ConsoleMenu --> ProductService
+    ConsoleMenu --> ReturnService
+    ConsoleMenu --> WarrantyService
+    Main --> ProductService
+    Main --> AccessoryService
+    Main --> SaleService
+    Main --> ReturnService
+    Main --> WarrantyService
 ```
+
+`SaleRepository` keeps the original five-field sales rows readable and writes `totalAmount` as an optional sixth field. On load it resolves product, customer, and seller IDs to the domain objects already loaded by their services. Accessories share `product.csv` with the other product types.

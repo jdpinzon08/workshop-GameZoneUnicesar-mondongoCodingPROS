@@ -26,11 +26,13 @@ public class ReturnRepository {
     private final SaleService saleService;
     private final ProductService productService;
 
+    /** Uses the services needed to reconnect returns to sales and products. */
     public ReturnRepository(SaleService saleService, ProductService productService) {
         this.saleService = saleService;
         this.productService = productService;
     }
 
+    /** Writes all supplied returns to the returns CSV file. */
     public void saveAll(List<Return> returns) {
         File file = new File(FILE_PATH);
         File parentDir = file.getParentFile();
@@ -51,21 +53,23 @@ public class ReturnRepository {
                     }
                 }
 
-                String line = String.format(Locale.US, "%s,%s,%s,%s,%s,%.2f",
+                String[] fields = {
                         ret.getId(),
-                        ret.getReturnDate(),
+                        ret.getReturnDate() == null ? "" : ret.getReturnDate().toString(),
                         ret.getOriginalSale() != null ? ret.getOriginalSale().getSaleId() : "",
                         productIds.toString(),
                         ret.getReason(),
-                        ret.getRefundAmount());
-                writer.write(line);
+                        String.format(Locale.US, "%.2f", ret.getRefundAmount())
+                };
+                writer.write(toCsvRecord(fields));
                 writer.newLine();
             }
         } catch (IOException e) {
-            System.err.println("Error saving returns: " + e.getMessage());
+            throw new IllegalStateException("Error saving returns.", e);
         }
     }
 
+    /** Loads returns and reconnects them to their sales and products. */
     public List<Return> loadAll() {
         List<Return> returns = new ArrayList<>();
         File file = new File(FILE_PATH);
@@ -80,12 +84,12 @@ public class ReturnRepository {
                 if (line.trim().isEmpty()) {
                     continue;
                 }
-                String[] parts = line.split(",");
+                String[] parts = parseCsvRecord(line);
                 if (parts.length >= 6) {
                     String id = parts[0];
                     LocalDate returnDate = LocalDate.parse(parts[1]);
                     String saleId = parts[2];
-                    String[] productIds = parts[3].split(";");
+                    String[] productIds = parts[3].isEmpty() ? new String[0] : parts[3].split(";");
                     String reason = parts[4];
                     double refundAmount = Double.parseDouble(parts[5]);
 
@@ -105,9 +109,44 @@ public class ReturnRepository {
                 }
             }
         } catch (IOException e) {
-            System.err.println("Error loading returns: " + e.getMessage());
+            throw new IllegalStateException("Error loading returns.", e);
         }
 
         return returns;
+    }
+
+    private String toCsvRecord(String[] fields) {
+        List<String> escapedFields = new ArrayList<>();
+        for (String field : fields) {
+            String value = field == null ? "" : field;
+            if (value.contains(",") || value.contains("\"")
+                    || value.contains("\n") || value.contains("\r")) {
+                value = "\"" + value.replace("\"", "\"\"") + "\"";
+            }
+            escapedFields.add(value);
+        }
+        return String.join(",", escapedFields);
+    }
+
+    private String[] parseCsvRecord(String line) {
+        List<String> fields = new ArrayList<>();
+        StringBuilder field = new StringBuilder();
+        boolean quoted = false;
+        for (int i = 0; i < line.length(); i++) {
+            char current = line.charAt(i);
+            if (quoted && current == '"' && i + 1 < line.length() && line.charAt(i + 1) == '"') {
+                field.append('"');
+                i++;
+            } else if (current == '"') {
+                quoted = !quoted;
+            } else if (current == ',' && !quoted) {
+                fields.add(field.toString());
+                field.setLength(0);
+            } else {
+                field.append(current);
+            }
+        }
+        fields.add(field.toString());
+        return fields.toArray(new String[0]);
     }
 }

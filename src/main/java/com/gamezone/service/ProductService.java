@@ -59,21 +59,22 @@ public class ProductService {
     /**
      * Updates the stock quantity of a product.
      *
-     * @param productID ID of the product to update
+     * @param productId ID of the product to update
      * @param newStock new stock quantity
      * @throws IllegalArgumentException if the stock is negative or the product does not exist
      */
-    public void updateStock(String productID, int newStock) {
+    public void updateStock(String productId, int newStock) {
         if (newStock < 0) {
             throw new IllegalArgumentException("Stock cannot be negative");
         }
-        Product product = findProductById(productID);
+        Product product = findProductById(productId);
         if (product == null) {
-            throw new IllegalArgumentException("Product with id " + productID + " does not exist");
+            throw new IllegalArgumentException("Product with id " + productId + " does not exist");
         }
         product.setStockQuantity(newStock);
         repository.saveAll(inventory);
     }
+    /** Adds the returned quantity back to an inventory product. */
     public void restoreStock(String productId, int quantity) {
         Product product = findProductById(productId);
         if (product != null) {
