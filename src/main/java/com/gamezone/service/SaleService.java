@@ -23,8 +23,7 @@ public class SaleService {
     }
 
     /** Loads existing sales using the supplied product and person services. */
-    public SaleService(SaleRepository saleRepository, ProductService productService,
-                       PersonService personService) {
+    public SaleService(SaleRepository saleRepository, ProductService productService,PersonService personService) {
         this.saleRepository = saleRepository;
         this.productService = productService;
         List<Customer> customers = personService == null
