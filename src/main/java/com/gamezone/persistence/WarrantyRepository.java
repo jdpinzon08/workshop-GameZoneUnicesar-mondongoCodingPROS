@@ -28,8 +28,7 @@ public class WarrantyRepository {
         this("data/warranties.csv", productService, saleService);
     }
 
-    public WarrantyRepository(String filePath, ProductService productService,
-                              SaleService saleService) {
+    public WarrantyRepository(String filePath, ProductService productService, SaleService saleService) {
         this.filePath = filePath;
         this.productService = productService;
         this.saleService = saleService;

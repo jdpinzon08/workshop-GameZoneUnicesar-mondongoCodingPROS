@@ -108,8 +108,7 @@ public class WarrantyService {
      */
     public List<Warranty> listWarrantiesExpiringSoon(int daysAhead) {
         if (daysAhead < 0) {
-            throw new IllegalArgumentException(
-                    "Los días de anticipación no pueden ser negativos."
+            throw new IllegalArgumentException("The number of days of advance notice cannot be negative.."
             );
         }
 
@@ -131,15 +130,15 @@ public class WarrantyService {
     private void validateWarrantyData(Product product, Sale sale,
                                       LocalDate startDate) {
         if (product == null) {
-            throw new IllegalArgumentException("El producto no puede ser nulo.");
+            throw new IllegalArgumentException("The product cannot be null..");
         }
 
         if (sale == null) {
-            throw new IllegalArgumentException("La venta no puede ser nula.");
+            throw new IllegalArgumentException("The sale cannot be void..");
         }
 
         if (startDate == null) {
-            throw new IllegalArgumentException("La fecha de inicio no puede ser nula.");
+            throw new IllegalArgumentException("The start date cannot be null..");
         }
     }
 

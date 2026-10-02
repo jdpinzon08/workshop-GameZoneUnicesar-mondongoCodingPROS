@@ -69,7 +69,7 @@ public class BulkPurchaseDiscount extends Promotion {
         }
         //asi cuando se use este metodo solo se tiene que restar el total de la venta con este mismo metodo y sale el total neto
         if (sum >= minimumQuantity) {
-            discountPercentage = price-((price*percentage)/100);
+            discountPercentage = (price*percentage)/100;
         }
 
         return discountPercentage;

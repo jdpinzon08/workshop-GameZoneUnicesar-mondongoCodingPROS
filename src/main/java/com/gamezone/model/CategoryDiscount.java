@@ -66,7 +66,7 @@ public class CategoryDiscount extends Promotion{
             }
         }
         if(sum!=0.0){
-            percentageDiscount=sum-((sum*percentage)/100);
+            percentageDiscount=(sum*percentage)/100;
         }
 
         return percentageDiscount;
