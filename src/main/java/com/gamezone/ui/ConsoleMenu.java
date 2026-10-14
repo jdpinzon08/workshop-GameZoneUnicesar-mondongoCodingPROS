@@ -59,11 +59,11 @@ public class ConsoleMenu {
                 case "4": handleCheckWarranties(); break;
                 case "5": handleReturns(); break;
                 case "0":
-                    System.out.println("\nThank you for using GameZone Unicesar! Exiting...");
+                    System.out.println("\nGracias por usar gamezone unicesar, vuelve pronto mi loco");
                     running = false;
                     break;
                 default:
-                    System.out.println("\n[!] Invalid option. Please try again.");
+                    System.out.println("\n[!] opcion invalida, usa una buena.");
             }
         }
     }
@@ -72,23 +72,23 @@ public class ConsoleMenu {
         System.out.println("\n========================================");
         System.out.println("       GAMEZONE UNICESAR - MENU         ");
         System.out.println("========================================");
-        System.out.println("1. Register new sale");
-        System.out.println("2. View sales transaction history");
-        System.out.println("3. List available products");
-        System.out.println("4. Check product and sales warranties");
+        System.out.println("1. registra una venta ");
+        System.out.println("2. ver historial de ventas ");
+        System.out.println("3. listar los productos disponibles");
+        System.out.println("4. revisar las ventar y productos en garantia");
         if (returnService != null) {
-            System.out.println("5. Manage returns");
+            System.out.println("5. gestionar devoluciones");
         }
-        System.out.println("0. Exit");
+        System.out.println("0. salir");
         System.out.println("========================================");
         System.out.print("Select an option: ");
     }
 
     private void handleRegisterSale() {
-        System.out.println("\n--- NEW SALE REGISTRATION ---");
-        System.out.print("Enter Customer ID: ");
+        System.out.println("\n ____registro de una nueva venta____");
+        System.out.print("ingrese la cedula del comprador: ");
         String customerId = scanner.nextLine().trim();
-        System.out.print("Enter Seller ID: ");
+        System.out.print("ingrese la cedula del vendedor encargado: ");
         String sellerId = scanner.nextLine().trim();
 
         List<Product> selectedProducts = new ArrayList<>();
@@ -96,32 +96,32 @@ public class ConsoleMenu {
         boolean addingProducts = true;
 
         while (addingProducts) {
-            System.out.print("Enter Product ID to purchase: ");
+            System.out.print("ingrese el identificador del producto: ");
             String pId = scanner.nextLine().trim();
             Product foundProduct = productService.findProductById(pId);
 
             if (foundProduct != null) {
                 selectedProducts.add(foundProduct);
-                System.out.println("-> Added: " + foundProduct.getTitle());
+                System.out.println("-> agregado: " + foundProduct.getTitle());
 
                 if (foundProduct instanceof Console) {
-                    System.out.print("   Add Extended Warranty (10% extra) for this console? (y/n): ");
-                    if (scanner.nextLine().trim().equalsIgnoreCase("y")) {
+                    System.out.print("   agregar garantia (10% extra) para esta consola? (s/n): ");
+                    if (scanner.nextLine().trim().equalsIgnoreCase("s")) {
                         extendedWarrantyProductIds.add(foundProduct.getId());
                     }
                 }
             } else {
-                System.out.println("[!] Product not found with ID: " + pId);
+                System.out.println("[!] no se ha encontrado un producto con ese identificador: " + pId);
             }
 
-            System.out.print("Do you want to add another product? (y/n): ");
-            if (!scanner.nextLine().trim().equalsIgnoreCase("y")) {
+            System.out.print("desea agregar otro producto a la compra? (s/n): ");
+            if (!scanner.nextLine().trim().equalsIgnoreCase("s")) {
                 addingProducts = false;
             }
         }
 
         if (selectedProducts.isEmpty()) {
-            System.out.println("[X] Sale cancelled: No products selected.");
+            System.out.println("[X] venta cancelada: no se eligieron productos.");
             return;
         }
 
@@ -132,44 +132,44 @@ public class ConsoleMenu {
 
         Customer customer = personService.findCustomerById(customerId);
         if (customer == null) {
-            customer = new Customer(customerId, "Customer " + customerId, "N/A", "N/A");
+            customer = new Customer(customerId, "cliente: " + customerId, "N/A", "N/A");
         }
         Seller seller = personService.getAllSellers().stream()
                 .filter(candidate -> candidate.getId().equalsIgnoreCase(sellerId))
                 .findFirst().orElse(null);
         if (seller == null) {
-            seller = new Seller(sellerId, "Seller " + sellerId, "N/A", sellerId, "Day");
+            seller = new Seller(sellerId, "vendedor " + sellerId, "N/A", sellerId, "Day");
         }
-        String saleId = "SALE-" + (saleService.getAllSales().size() + 1);
+        String saleId = "venta-" + (saleService.getAllSales().size() + 1);
         String currentDate = LocalDate.now().toString();
 
         try {
-            Sale sale = new Sale(saleId, selectedProducts, totalAmount, currentDate, customer, seller);
+            Sale sale = new Sale(saleId, selectedProducts, totalAmount, currentDate, customer, seller, "", 0.0);
             saleService.registerSale(sale, extendedWarrantyProductIds);
 
-            System.out.println("\n[✓] Sale registered successfully!");
-            System.out.println("Sale ID: " + sale.getSaleId());
-            System.out.println("Total Paid: $" + sale.getTotalAmount());
+            System.out.println("\n[✓] venta registrada correctamente!");
+            System.out.println("codigo de la venta: " + sale.getSaleId());
+            System.out.println("costo total: $" + sale.getTotalAmount());
         } catch (IllegalArgumentException e) {
-            System.out.println("\n[X] Error processing sale: " + e.getMessage());
+            System.out.println("\n[X] error en realizacion de la venta, intente nuevamente: " + e.getMessage());
         }
     }
 
     private void handleReturns() {
         if (returnService == null) {
-            System.out.println("Return management is unavailable.");
+            System.out.println("la gestion de las devoluciones esta deshabilitada.");
             return;
         }
-        System.out.println("\n=== RETURN MANAGEMENT ===");
-        System.out.println("1. Register a return");
-        System.out.println("2. List returns");
-        System.out.println("0. Back");
-        System.out.print("Select an option: ");
+        System.out.println("\n=== gestor de devoluciones ===");
+        System.out.println("1. registrar una devolucion");
+        System.out.println("2. mostrar devoluciones");
+        System.out.println("0. volver");
+        System.out.print("seleccione una opcion: ");
         String option = scanner.nextLine().trim();
         if ("1".equals(option)) {
-            System.out.print("Sale ID: ");
+            System.out.print("ingrese el codigo de la venta: ");
             String saleId = scanner.nextLine().trim();
-            System.out.print("Product IDs (comma separated): ");
+            System.out.print("ingrese el codigo de los productos (separados por comas): ");
             String productIdsInput = scanner.nextLine().trim();
             List<String> productIds = new ArrayList<>();
             for (String productId : productIdsInput.split(",")) {
@@ -177,18 +177,18 @@ public class ConsoleMenu {
                     productIds.add(productId.trim());
                 }
             }
-            System.out.print("Reason: ");
+            System.out.print("ingrese la razon de la devolucion: ");
             String reason = scanner.nextLine().trim();
             try {
                 Return registeredReturn = returnService.registerReturn(saleId, productIds, reason);
                 System.out.println(registeredReturn.generateReturnReceipt());
             } catch (IllegalArgumentException e) {
-                System.out.println("[X] Error processing return: " + e.getMessage());
+                System.out.println("[X] error procesando la devolucion, intente nuevamente : " + e.getMessage());
             }
         } else if ("2".equals(option)) {
             List<Return> returns = returnService.viewAllReturns();
             if (returns.isEmpty()) {
-                System.out.println("No returns recorded yet.");
+                System.out.println("aun no hay devoluciones registradas.");
             } else {
                 returns.forEach(item -> System.out.println(item.generateReturnReceipt()));
             }
@@ -196,70 +196,70 @@ public class ConsoleMenu {
     }
 
     private void handleListSales() {
-        System.out.println("\n--- TRANSACTION HISTORY ---");
+        System.out.println("\n___ historial de ventas ___");
         List<Sale> sales = saleService.getAllSales();
         if (sales.isEmpty()) {
-            System.out.println("No sales recorded yet.");
+            System.out.println("aun no hay ventas registradas.");
             return;
         }
         for (Sale s : sales) {
-            System.out.println("ID: " + s.getSaleId() + " | Date: " + s.getDate() + " | Total: $" + s.getTotalAmount());
+            System.out.println("codigo: " + s.getSaleId() + " | fecha: " + s.getDate() + " | Total: $" + s.getTotalAmount());
         }
     }
 
     private void handleListProducts() {
-        System.out.println("\n--- PRODUCT CATALOG ---");
+        System.out.println("\n___ catalogo de productos disponibles ___");
         List<Product> products = productService.getAllProducts();
         if (products.isEmpty()) {
-            System.out.println("No products found.");
+            System.out.println("no se han encontrado productos.");
             return;
         }
         for (Product p : products) {
-            System.out.println("ID: " + p.getId() + " | Title: " + p.getTitle() + " | Price: $" + p.getPrice() + " | Stock: " + p.getStockQuantity());
+            System.out.println("codigo: " + p.getId() + " | nombre: " + p.getTitle() + " | costo: $" + p.getPrice() + " | cantidad disponible: " + p.getStockQuantity());
         }
     }
 
     private void handleCheckWarranties() {
         boolean back = false;
         while (!back) {
-            System.out.println("\n=== WARRANTY MANAGEMENT ===");
-            System.out.println("1. Find warranty by product and sale");
-            System.out.println("2. List all warranties");
-            System.out.println("3. List active warranties");
-            System.out.println("4. List warranties expiring soon");
-            System.out.println("0. Back to main menu");
-            System.out.print("Select an option: ");
+            System.out.println("\n=== gestor de garantias ===");
+            System.out.println("1. encontrar garantia por producto y venta");
+            System.out.println("2. mostrar todas las garantias");
+            System.out.println("3. mostrar las garantias vigentes");
+            System.out.println("4. mostrar garantias a punto de expirar");
+            System.out.println("0. volver al menu principal");
+            System.out.print("seleccione una opcion: ");
 
             String option = scanner.nextLine().trim();
             switch (option) {
                 case "1":
-                    System.out.print("Enter Product ID: ");
+                    System.out.print("ingrese el codigo del producto: ");
                     String pId = scanner.nextLine().trim();
-                    System.out.print("Enter Sale ID: ");
+                    System.out.print("ingrese el codigo de la venta: ");
                     String sId = scanner.nextLine().trim();
                     Warranty w = warrantyService.findWarrantyByProduct(pId, sId);
-                    System.out.println(w != null ? "\nWarranty found: " + w.getId() : "\n[!] No warranty found.");
+                    System.out.println(w != null ? "\ngarantia encontrada: " + w.getId() : "\n[!] no se encontro garantia.");
                     break;
                 case "2":
-                    warrantyService.listAllWarranties().forEach(item -> System.out.println("ID: " + item.getId() + " | End: " + item.getEndDate()));
+                    warrantyService.listAllWarranties().forEach(item -> System.out.println("codigo: " + item.getId() + " | finaliza: " + item.getEndDate()));
                     break;
                 case "3":
-                    warrantyService.listActiveWarranties().forEach(item -> System.out.println("Active - ID: " + item.getId() + " | End: " + item.getEndDate()));
+                    warrantyService.listActiveWarranties().forEach(item -> System.out.println("Activa - codigo: " + item.getId() + " | finaliza: " + item.getEndDate()));
                     break;
                 case "4":
-                    System.out.print("Enter days ahead: ");
+                    System.out.print("proximos a expirar: ");
                     try {
                         int days = Integer.parseInt(scanner.nextLine().trim());
-                        warrantyService.listWarrantiesExpiringSoon(days).forEach(item -> System.out.println("Expiring - ID: " + item.getId() + " | End: " + item.getEndDate()));
+                        warrantyService.listWarrantiesExpiringSoon(days).forEach(item -> System.out.println("expirada - codigo: " + item.getId() + " | finalizo: " + item.getEndDate()));
                     } catch (NumberFormatException e) {
-                        System.out.println("[!] Invalid number.");
+                        System.out.println("[!] numero invalido.");
                     }
                     break;
                 case "0":
                     back = true;
                     break;
                 default:
-                    System.out.println("\n[!] Invalid option.");
+                    System.out.println("\n[!] numero invalido mi hermano, haga algo bien.");
             }
         }
     }
