@@ -44,7 +44,7 @@ public class SaleRepository {
         }
     }
 
-    /** CSV fields: saleId,date,customerId,sellerId,productIds,totalAmount. */
+    /** CSV fields: saleId,date,customerId,sellerId,productIds,totalAmount,appliedPromotionName,discountAmount. */
     public void saveAll(List<Sale> sales) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
             for (Sale sale : sales) {
@@ -52,13 +52,19 @@ public class SaleRepository {
                         .map(Product::getId)
                         .reduce((left, right) -> left + "|" + right)
                         .orElse("");
+
+                String appliedPromo = sale.getAppliedPromotionName() != null ? sale.getAppliedPromotionName() : "";
+                String discountStr = Double.toString(sale.getDiscountAmount());
+
                 writer.write(String.join(",",
                         sale.getSaleId(),
                         sale.getDate(),
                         sale.getCustomer() == null ? "" : sale.getCustomer().getId(),
                         sale.getSeller() == null ? "" : sale.getSeller().getId(),
                         productIds,
-                        Double.toString(sale.getTotalAmount())));
+                        Double.toString(sale.getTotalAmount()),
+                        appliedPromo,
+                        discountStr));
                 writer.newLine();
             }
         } catch (IOException e) {
@@ -108,7 +114,24 @@ public class SaleRepository {
                 double total = fields.length > 5 && !fields[5].isBlank()
                         ? Double.parseDouble(fields[5])
                         : saleProducts.stream().mapToDouble(Product::getPrice).sum();
-                sales.add(new Sale(fields[0], saleProducts, total, fields[1], customer, seller));
+
+                // 1. Extraer la promoción (campo 6)
+                String appliedPromo = (fields.length > 6 && !fields[6].isBlank()) ? fields[6] : "";
+
+                // 2. Extraer el descuento (campo 7) con manejo de error
+                double discountAmount = 0.0;
+                if (fields.length > 7 && !fields[7].isBlank()) {
+                    try {
+                        discountAmount = Double.parseDouble(fields[7]);
+                    } catch (NumberFormatException ignored) {
+                        discountAmount = 0.0;
+                    }
+                }
+
+                // 3. Crear Sale pasando los 8 argumentos requeridos
+                Sale sale = new Sale(fields[0], saleProducts, total, fields[1], customer, seller, appliedPromo, discountAmount);
+
+                sales.add(sale);
             }
         } catch (IOException e) {
             throw new IllegalStateException("Error reading sales file: " + filePath, e);
