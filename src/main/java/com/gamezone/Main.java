@@ -6,12 +6,7 @@ import com.gamezone.persistence.ProductRepository;
 import com.gamezone.persistence.ReturnRepository;
 import com.gamezone.persistence.SaleRepository;
 import com.gamezone.persistence.WarrantyRepository;
-import com.gamezone.service.AccessoryService;
-import com.gamezone.service.PersonService;
-import com.gamezone.service.ProductService;
-import com.gamezone.service.ReturnService;
-import com.gamezone.service.SaleService;
-import com.gamezone.service.WarrantyService;
+import com.gamezone.service.*;
 import com.gamezone.ui.ConsoleMenu;
 
 /** Starts GameZone and connects its repositories, services, and console menu. */
