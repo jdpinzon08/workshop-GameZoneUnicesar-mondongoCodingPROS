@@ -2,6 +2,7 @@ package com.gamezone.service;
 
 import com.gamezone.model.*;
 import com.gamezone.persistence.SaleRepository;
+import com.gamezone.service.PromotionService;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ public class SaleService {
     private final ProductService productService;
     private final List<Sale> sales;
     private WarrantyService warrantyService; // Inyectado vía setter
+    private PromotionService promotionService; //tambien inyectado por setters
 
     /** Creates a sale service without a person service. */
     public SaleService(SaleRepository saleRepository, ProductService productService) {
@@ -42,6 +44,11 @@ public class SaleService {
     /** Sets the service used to assign warranties during sale registration. */
     public void setWarrantyService(WarrantyService warrantyService) {
         this.warrantyService = warrantyService;
+    }
+
+    /** Sets the service used to evaluate promotions during sale registration. */
+    public void setPromotionService(PromotionService promotionService) {
+        this.promotionService = promotionService;
     }
 
     /** Validates and records a sale, applying selected extended warranties. */
