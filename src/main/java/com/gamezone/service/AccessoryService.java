@@ -43,25 +43,16 @@ public class AccessoryService {
         }
     }
 
-    /**
-     * Registers a new controller accessory.
-     */
     public void registerController(String id, String title, double price, int stockQuantity, List<String> compatibleConsoles, String connectionType) {
         Controller controller = new Controller(id, title, price, stockQuantity, compatibleConsoles, connectionType);
         registerAccessory(controller);
     }
 
-    /**
-     * Registers a new cable accessory.
-     */
     public void registerCable(String id, String title, double price, int stockQuantity, List<String> compatibleConsoles, double lengthInMeters, String connectorType) {
         Cable cable = new Cable(id, title, price, stockQuantity, compatibleConsoles, lengthInMeters, connectorType);
         registerAccessory(cable);
     }
 
-    /**
-     * Registers a new memory accessory.
-     */
     public void registerMemory(String id, String title, double price, int stockQuantity, List<String> compatibleConsoles, int capacityInGB, String memoryType) {
         Memory memory = new Memory(id, title, price, stockQuantity, compatibleConsoles, capacityInGB, memoryType);
         registerAccessory(memory);
