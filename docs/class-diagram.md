@@ -126,9 +126,9 @@ classDiagram
 
     Sale "0..*" --> "1" Customer
     Sale "0..*" --> "1" Seller
-Sale "1" o-- "1..*" Product
+Sale "1" -- "1..*" Product
 Return "0..*" --> "1" Sale
-Return "0..*" o-- "1..*" Product
+Return "0..*" -- "1..*" Product
 Warranty "0..*" --> "1" Product
 Warranty "0..*" --> "1" Sale
 
