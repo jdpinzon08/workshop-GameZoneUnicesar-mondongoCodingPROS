@@ -1,134 +1,121 @@
 package com.gamezone.persistence;
 
-import com.gamezone.model.BasicWarranty;
-import com.gamezone.model.ExtendedWarranty;
-import com.gamezone.model.Product;
-import com.gamezone.model.Sale;
-import com.gamezone.model.Warranty;
-import com.gamezone.service.ProductService;
-import com.gamezone.service.SaleService;
-
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Persists warranty records in CSV format.
- */
+/** Persists warranty records as identifiers and scalar values, without service dependencies. */
 public class WarrantyRepository {
 
     private final String filePath;
-    private final ProductService productService;
-    private final SaleService saleService;
+    private final List<WarrantyDataRecord> records;
 
-    public WarrantyRepository(ProductService productService, SaleService saleService) {
-        this("data/warranties.csv", productService, saleService);
-    }
-
-    public WarrantyRepository(String filePath, ProductService productService, SaleService saleService) {
+    /** Creates a repository backed by the supplied CSV path and loads its records. */
+    public WarrantyRepository(String filePath) {
         this.filePath = filePath;
-        this.productService = productService;
-        this.saleService = saleService;
+        this.records = new ArrayList<>();
+        loadFromFile();
     }
 
-    /**
-     * Saves all warranties in the CSV file.
-     */
-    public void saveAll(List<Warranty> warranties) {
-        try {
-            Path path = Path.of(filePath);
+    /** Holds the persisted warranty fields without resolving domain relationships. */
+    public static class WarrantyDataRecord {
+        private final String warrantyId;
+        private final String saleId;
+        private final String productId;
+        private final LocalDate startDate;
+        private final LocalDate endDate;
+        private final String warrantyType;
+        private final double additionalCost;
 
-            if (path.getParent() != null) {
-                Files.createDirectories(path.getParent());
-            }
+        /** Creates a warranty data record. */
+        public WarrantyDataRecord(String warrantyId, String saleId, String productId,
+                                  LocalDate startDate, LocalDate endDate,
+                                  String warrantyType, double additionalCost) {
+            this.warrantyId = warrantyId;
+            this.saleId = saleId;
+            this.productId = productId;
+            this.startDate = startDate;
+            this.endDate = endDate;
+            this.warrantyType = warrantyType;
+            this.additionalCost = additionalCost;
+        }
 
-            List<String> lines = new ArrayList<>();
+        /** @return unique warranty identifier */
+        public String getWarrantyId() { return warrantyId; }
+        /** @return associated sale identifier */
+        public String getSaleId() { return saleId; }
+        /** @return associated product identifier */
+        public String getProductId() { return productId; }
+        /** @return warranty start date */
+        public LocalDate getStartDate() { return startDate; }
+        /** @return persisted warranty end date, or {@code null} for legacy records */
+        public LocalDate getEndDate() { return endDate; }
+        /** @return persisted warranty type */
+        public String getWarrantyType() { return warrantyType; }
+        /** @return persisted additional cost */
+        public double getAdditionalCost() { return additionalCost; }
+    }
 
-            for (Warranty warranty : warranties) {
-                String type;
+    /** @return a defensive copy of the loaded raw records */
+    public List<WarrantyDataRecord> getRecords() {
+        return new ArrayList<>(records);
+    }
 
-                if (warranty instanceof BasicWarranty) {
-                    type = "BASIC";
-                } else if (warranty instanceof ExtendedWarranty) {
-                    type = "EXTENDED";
-                } else {
-                    continue;
-                }
-
-                lines.add(
-                        type + "," +
-                                warranty.getId() + "," +
-                                warranty.getProduct().getId() + "," +
-                                warranty.getSale().getSaleId() + "," +
-                                warranty.getStartDate()
-                );
-            }
-
-            Files.write(path, lines);
-
+    /** Persists a warranty record without loading Sale or Product objects. */
+    public void save(String warrantyId, String saleId, String productId,
+                     LocalDate startDate, LocalDate endDate,
+                     String warrantyType, double additionalCost) {
+        WarrantyDataRecord record = new WarrantyDataRecord(warrantyId, saleId, productId,
+                startDate, endDate, warrantyType, additionalCost);
+        File file = new File(filePath);
+        File parent = file.getParentFile();
+        if (parent != null && !parent.exists() && !parent.mkdirs()) {
+            throw new IllegalStateException("Unable to create warranty directory: " + parent);
+        }
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
+            writer.write(String.join(",", warrantyId, saleId, productId, startDate.toString(),
+                    endDate.toString(), warrantyType, Double.toString(additionalCost)));
+            writer.newLine();
+            records.add(record);
         } catch (IOException e) {
-            throw new RuntimeException("Error saving warranties.", e);
+            throw new IllegalStateException("Error writing warranty file: " + filePath, e);
         }
     }
 
-    /**
-     * Loads warranties from the CSV file.
-     *
-     * @return all warranties, or an empty list when the file does not exist
-     */
-    public List<Warranty> loadAll() {
-        List<Warranty> warranties = new ArrayList<>();
-        Path path = Path.of(filePath);
-
-        if (!Files.exists(path)) {
-            return warranties;
+    private void loadFromFile() {
+        File file = new File(filePath);
+        if (!file.exists()) {
+            return;
         }
-
-        try {
-            List<String> lines = Files.readAllLines(path);
-
-            for (String line : lines) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
                 if (line.isBlank()) {
                     continue;
                 }
-
-                String[] parts = line.split(",", -1);
-
-                if (parts.length != 5) {
-                    continue;
-                }
-
-                String type = parts[0];
-                String warrantyId = parts[1];
-                String productId = parts[2];
-                String saleId = parts[3];
-                LocalDate startDate = LocalDate.parse(parts[4]);
-
-                Product product = productService.findProductById(productId);
-                Sale sale = saleService.getSaleById(saleId);
-
-                if (product == null || sale == null) {
-                    continue;
-                }
-
-                if ("BASIC".equalsIgnoreCase(type)) {
-                    warranties.add(
-                            new BasicWarranty(warrantyId, product, sale, startDate)
-                    );
-                } else if ("EXTENDED".equalsIgnoreCase(type)) {
-                    warranties.add(
-                            new ExtendedWarranty(warrantyId, product, sale, startDate)
-                    );
+                String[] fields = line.split(",", -1);
+                if (fields.length >= 7) {
+                    records.add(new WarrantyDataRecord(fields[0].trim(), fields[1].trim(),
+                            fields[2].trim(), LocalDate.parse(fields[3].trim()),
+                            LocalDate.parse(fields[4].trim()), fields[5].trim(),
+                            Double.parseDouble(fields[6].trim())));
+                } else if (fields.length == 5) {
+                    // Legacy format: type,id,productId,saleId,startDate.
+                    String type = fields[0].trim();
+                    LocalDate start = LocalDate.parse(fields[4].trim());
+                    int duration = "EXTENDED".equalsIgnoreCase(type) ? 12 : 6;
+                    records.add(new WarrantyDataRecord(fields[1].trim(), fields[3].trim(),
+                            fields[2].trim(), start, start.plusMonths(duration), type, 0.0));
                 }
             }
-
-        } catch (IOException e) {
-            throw new RuntimeException("Error loading warranties.", e);
+        } catch (IOException | RuntimeException e) {
+            throw new IllegalStateException("Error reading warranty file: " + filePath, e);
         }
-
-        return warranties;
     }
 }
