@@ -41,7 +41,8 @@ flowchart TD
     AccessoryRepo --> ProductRepo
     ReturnRepo --> SaleService
     ReturnRepo --> ProductService
-    WarrantyRepo --> SaleService
-    WarrantyRepo --> ProductService
+    WarrantyService --> WarrantyRepo
+    WarrantyService --> SaleRepo
+    WarrantyService --> ProductService
     
 ```
