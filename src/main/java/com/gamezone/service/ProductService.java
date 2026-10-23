@@ -1,7 +1,10 @@
 package com.gamezone.service;
 
+import com.gamezone.exceptions.BusinessRuleException;
+import com.gamezone.exceptions.InvalidDataException;
 import com.gamezone.model.Product;
 import com.gamezone.persistence.ProductRepository;
+import com.gamezone.validation.ProductValidator;
 
 import java.util.List;
 /**
@@ -24,11 +27,17 @@ public class ProductService {
      * Registers a new product in the inventory.
      *
      * @param product product to register
-     * @throws IllegalArgumentException if a product with the same ID already exists
+     * @throws InvalidDataException if the product or one of its required fields is invalid
+     * @throws BusinessRuleException if a product with the same ID already exists
      */
     public void registerProduct(Product product){
+        if (product == null) {
+            throw new InvalidDataException("product", "no puede ser nulo");
+        }
+        ProductValidator.validateProductData(product.getId(), product.getTitle(),
+                product.getPrice(), product.getStockQuantity());
         if (findProductById(product.getId()) != null){
-            throw new IllegalArgumentException("Product with id " + product.getId() + " already exists");
+            throw new BusinessRuleException("Ya existe un producto con identificador " + product.getId());
         }
         inventory.add(product);
         repository.saveAll(inventory);
@@ -61,16 +70,14 @@ public class ProductService {
      *
      * @param productId ID of the product to update
      * @param newStock new stock quantity
-     * @throws IllegalArgumentException if the stock is negative or the product does not exist
+     * @throws InvalidDataException if the new stock is negative
+     * @throws com.gamezone.exceptions.ResourceNotFoundException if the product does not exist
      */
     public void updateStock(String productId, int newStock) {
-        if (newStock < 0) {
-            throw new IllegalArgumentException("Stock cannot be negative");
-        }
         Product product = findProductById(productId);
-        if (product == null) {
-            throw new IllegalArgumentException("Product with id " + productId + " does not exist");
-        }
+        ProductValidator.validateProductExists(product, productId);
+        ProductValidator.validateProductData(product.getId(), product.getTitle(),
+                product.getPrice(), newStock);
         product.setStockQuantity(newStock);
         repository.saveAll(inventory);
     }
