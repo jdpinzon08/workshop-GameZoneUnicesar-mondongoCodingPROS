@@ -1,0 +1,12 @@
+type,id,title,price,stockQuantity,platform,genre,ageRating,brand,model,generation
+console,CONS-PS5-SLIM,PlayStation 5 Slim Disc,2899900,5,,,,Sony,PlayStation 5 Slim,9th Gen
+console,CONS-XBOX-SX,Xbox Series X,2799900,4,,,,Microsoft,Series X,9th Gen
+console,CONS-SWITCH-OLED,Nintendo Switch OLED,1699900,6,,,,Nintendo,Switch OLED,Hybrid
+videoGame,VG-EAFC26,EA Sports FC 26,279900,12,PlayStation 5,Sports,Everyone
+videoGame,VG-MK1,Mortal Kombat 1,219900,8,PlayStation 5,Fighting,Mature 17+
+videoGame,VG-ZELDA-TOTK,The Legend of Zelda Tears of the Kingdom,249900,7,Nintendo Switch,Action-Adventure,Everyone 10+
+videoGame,VG-HALO-INFINITE,Halo Infinite,199900,9,Xbox Series X,First-Person Shooter,Teen
+controller,ACC-DUALSENSE,PlayStation DualSense Wireless Controller,349900,10,CONS-PS5-SLIM,Wireless
+controller,ACC-XBOX-CONTROLLER,Xbox Wireless Controller,329900,8,CONS-XBOX-SX,Wireless
+cable,ACC-HDMI-2M,Ultra High Speed HDMI Cable 2m,59900,15,CONS-PS5-SLIM;CONS-XBOX-SX,2.0,HDMI 2.1
+memory,ACC-MICROSD-256,MicroSD Express 256GB,229900,10,CONS-SWITCH-OLED,256,MicroSD Express
