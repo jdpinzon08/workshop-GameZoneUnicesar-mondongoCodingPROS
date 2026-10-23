@@ -26,6 +26,7 @@ public class ProductRepository {
      * Creates a product repository using the specified file path.
      *
      * @param filePath path where product data will be stored
+     * @throws PersistenceException if the product file cannot be created or accessed
      */
     public ProductRepository(String filePath) {
         this.filePath = filePath;
@@ -34,6 +35,8 @@ public class ProductRepository {
 
     /**
      * Creates a product repository using the default CSV file.
+     *
+     * @throws PersistenceException if the default product file cannot be created or accessed
      */
     public ProductRepository() {
         this("data/product.csv");
@@ -63,6 +66,8 @@ public class ProductRepository {
      * Saves all products to the CSV file.
      *
      * @param products list of products to save
+     * @throws PersistenceException if writing the product file fails
+     * @throws IllegalArgumentException if a product type is unsupported
      */
     public void saveAll(List<Product> products) {
         List<String> lines = new ArrayList<>();
@@ -134,6 +139,7 @@ public class ProductRepository {
      * Loads all products stored in the CSV file.
      *
      * @return list of products read from the file
+     * @throws PersistenceException if reading the product file fails
      */
     public List<Product> findAll() {
         List<Product> products = new ArrayList<>();
