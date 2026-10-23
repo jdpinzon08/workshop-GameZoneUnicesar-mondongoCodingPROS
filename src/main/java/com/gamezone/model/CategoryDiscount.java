@@ -1,9 +1,10 @@
 package com.gamezone.model;
 
 import java.time.LocalDate;
+import java.util.Locale;
 
 /**
- * A class that applies discounts based on the category of the item being purchased—"video game" or "console."
+ * Applies a percentage discount to products in a supported category.
  */
 
 
@@ -13,8 +14,8 @@ public class CategoryDiscount extends Promotion{
      */
     private double percentageDiscount;
     private String objectCategory;
-    private final Class targetType;
-    private final double percentage;
+    private Class<?> targetType;
+    private double percentage;
 
     /**
      * extended attributes and new attributes in the constructor
@@ -27,45 +28,94 @@ public class CategoryDiscount extends Promotion{
      * @param targetType the class of object
      * @param percentage the percentage that will be used for the rest
      */
-    public CategoryDiscount(String id, String name, LocalDate startDate,LocalDate endDate, double percentageDiscount, String objectCategory,Class targetType,double percentage){
+    /**
+     * Creates a category promotion for video games, consoles, or accessories.
+     *
+     * @param id promotion identifier
+     * @param name promotion name
+     * @param startDate first active date
+     * @param endDate last active date
+     * @param percentageDiscount configured discount rate
+     * @param objectCategory target category
+     * @param targetType retained for compatibility; the category determines the target type
+     * @param percentage configured discount rate
+     */
+    public CategoryDiscount(String id, String name, LocalDate startDate, LocalDate endDate,
+                            double percentageDiscount, String objectCategory,
+                            Class<?> targetType, double percentage) {
         super(id, name, startDate, endDate);
-        this.objectCategory=objectCategory;
-        this.percentageDiscount=percentageDiscount;
-        this.targetType=targetType;
-        this.percentage=percentage;
+        this.objectCategory = normalizeCategory(objectCategory);
+        this.percentage = percentage != 0.0 ? percentage : percentageDiscount;
+        this.percentageDiscount = this.percentage;
+        this.targetType = typeForCategory(this.objectCategory);
     }
 
     /**
-     * getters and setter of the new attributes
-     *
+     * Returns the configured discount rate as a percentage.
+     * @return configured discount rate
      */
     public double getPercentageDiscount() {return percentageDiscount;}
 
-    public void setPercentageDiscount(double percentageDiscount) {this.percentageDiscount = percentageDiscount;}
+    /**
+     * Updates the configured discount rate.
+     * @param percentageDiscount new discount rate
+     */
+    public void setPercentageDiscount(double percentageDiscount) {
+        this.percentageDiscount = percentageDiscount;
+        this.percentage = percentageDiscount;
+    }
 
+    /**
+     * Returns the normalized target category.
+     * @return target category
+     */
     public String getObjectCategory() {return objectCategory;}
 
-    public void setObjectCategory(String objectCategory) {this.objectCategory = objectCategory;}
+    /**
+     * Updates the target category and its corresponding product type.
+     * @param objectCategory new target category
+     */
+    public void setObjectCategory(String objectCategory) {
+        this.objectCategory = normalizeCategory(objectCategory);
+        this.targetType = typeForCategory(this.objectCategory);
+    }
     /**
      * Returns the configured discount percentage.
-     *
-     * @return the configured discount percentage
+     * @return configured percentage
      */
     public double getPercentage() {
         return percentage;
     }
 
     /**
-     * Returns the class targeted by this promotion.
-     *
-     * @return the target product class
+     * Returns the product class targeted by this promotion.
+     * @return target product class
      */
-    public Class getTargetType() {
+    public Class<?> getTargetType() {
         return targetType;
     }
 
+    private static String normalizeCategory(String category) {
+        if (category == null) {
+            throw new IllegalArgumentException("Promotion category cannot be null.");
+        }
+        String normalized = category.trim().toUpperCase(Locale.ROOT);
+        if (!normalized.equals("VIDEOGAME") && !normalized.equals("CONSOLE")
+                && !normalized.equals("ACCESSORY")) {
+            throw new IllegalArgumentException("Unsupported promotion category: " + category);
+        }
+        return normalized;
+    }
 
-    //new methods
+    private static Class<?> typeForCategory(String category) {
+        return switch (category) {
+            case "VIDEOGAME" -> VideoGame.class;
+            case "CONSOLE" -> Console.class;
+            case "ACCESSORY" -> Accessory.class;
+            default -> throw new IllegalArgumentException("Unsupported promotion category: " + category);
+        };
+    }
+
 
     /**
      * Calculates the discount for products matching the configured target type.
@@ -82,13 +132,14 @@ public class CategoryDiscount extends Promotion{
         double eligibleSubtotal = 0.0;
 
         for (Product product : sale.getProducts()) {
-            if (product != null && targetType.isInstance(product)) {
+            boolean matches = product != null && ("ACCESSORY".equals(objectCategory)
+                    ? product instanceof Accessory : targetType.isInstance(product));
+            if (matches) {
                 eligibleSubtotal += product.getPrice();
             }
         }
 
-        percentageDiscount = eligibleSubtotal * percentage / 100.0;
-        return percentageDiscount;
+        return eligibleSubtotal * percentage / 100.0;
     }
 
 }
