@@ -93,6 +93,16 @@ public class ConsoleMenu {
                     default:
                         System.out.println("\n[!] Opción inválida. Por favor, seleccione una opción válida.");
                 }
+            } catch (ResourceNotFoundException e) {
+                handleException(e);
+            } catch (BusinessRuleException e) {
+                handleException(e);
+            } catch (InvalidDataException e) {
+                handleException(e);
+            } catch (PersistenceException e) {
+                handleException(e);
+            } catch (GameZoneException e) {
+                handleException(e);
             } catch (Exception e) {
                 handleException(e);
             }
@@ -154,8 +164,10 @@ public class ConsoleMenu {
                     percentage, category, targetType, percentage);
             promotionService.registerCategoryDiscount(promotion);
             System.out.println("[✓] promoción registrada correctamente.");
+        } catch (GameZoneException e) {
+            handleException(e);
         } catch (IllegalArgumentException e) {
-            System.out.println("[X] no se pudo registrar la promoción: " + e.getMessage());
+            System.out.println("[!] No se pudo registrar la promoción. Revise los datos ingresados.");
         }
     }
 
