@@ -1,10 +1,16 @@
 package com.gamezone.persistence;
 
+import com.gamezone.exceptions.PersistenceException;
 import com.gamezone.model.Customer;
 import com.gamezone.model.Person;
 import com.gamezone.model.Seller;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,6 +32,25 @@ public class PersonRepository {
      */
     public PersonRepository(String filePath) {
         this.filePath = filePath;
+        ensureFileExists();
+    }
+
+    public PersonRepository() {
+        this("data/persons.csv");
+    }
+
+    private void ensureFileExists() {
+        File file = new File(filePath);
+        try {
+            if (file.getParentFile() != null) {
+                file.getParentFile().mkdirs();
+            }
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+        } catch (IOException e) {
+            throw new PersistenceException("Error al crear o verificar el archivo de personas: " + filePath, e);
+        }
     }
 
     /**
@@ -48,7 +73,7 @@ public class PersonRepository {
                 writer.newLine();
             }
         } catch (IOException e) {
-            System.err.println("Error saving people data to CSV: " + e.getMessage());
+            throw new PersistenceException("Error al escribir los registros de personas en el archivo: " + filePath, e);
         }
     }
 
@@ -87,7 +112,7 @@ public class PersonRepository {
                 }
             }
         } catch (IOException e) {
-            System.err.println("Error loading people data from CSV: " + e.getMessage());
+            throw new PersistenceException("Error al leer los registros de personas desde el archivo: " + filePath, e);
         }
 
         return people;

@@ -1,5 +1,6 @@
 package com.gamezone.persistence;
 
+import com.gamezone.exceptions.PersistenceException;
 import com.gamezone.model.Customer;
 import com.gamezone.model.Product;
 import com.gamezone.model.Sale;
@@ -14,7 +15,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Persists complete sale records and resolves their domain relationships. */
+/**
+ * Persists complete sale records and resolves their domain relationships.
+ */
 public class SaleRepository {
 
     private final String filePath;
@@ -40,7 +43,7 @@ public class SaleRepository {
                 file.createNewFile();
             }
         } catch (IOException e) {
-            throw new IllegalStateException("Error creating sales file: " + filePath, e);
+            throw new PersistenceException("Error al crear o verificar el archivo de ventas: " + filePath, e);
         }
     }
 
@@ -68,7 +71,7 @@ public class SaleRepository {
                 writer.newLine();
             }
         } catch (IOException e) {
-            throw new IllegalStateException("Error writing sales file: " + filePath, e);
+            throw new PersistenceException("Error al escribir las ventas en el archivo: " + filePath, e);
         }
     }
 
@@ -115,10 +118,8 @@ public class SaleRepository {
                         ? Double.parseDouble(fields[5])
                         : saleProducts.stream().mapToDouble(Product::getPrice).sum();
 
-                // 1. Extraer la promoción (campo 6)
                 String appliedPromo = (fields.length > 6 && !fields[6].isBlank()) ? fields[6] : "";
 
-                // 2. Extraer el descuento (campo 7) con manejo de error
                 double discountAmount = 0.0;
                 if (fields.length > 7 && !fields[7].isBlank()) {
                     try {
@@ -128,13 +129,11 @@ public class SaleRepository {
                     }
                 }
 
-                // 3. Crear Sale pasando los 8 argumentos requeridos
                 Sale sale = new Sale(fields[0], saleProducts, total, fields[1], customer, seller, appliedPromo, discountAmount);
-
                 sales.add(sale);
             }
         } catch (IOException e) {
-            throw new IllegalStateException("Error reading sales file: " + filePath, e);
+            throw new PersistenceException("Error al leer el historial de ventas desde el archivo: " + filePath, e);
         }
         return sales;
     }
@@ -150,7 +149,7 @@ public class SaleRepository {
                 }
             }
         } catch (IOException e) {
-            throw new IllegalStateException("Error reading sales file: " + filePath, e);
+            throw new PersistenceException("Error al leer las líneas del archivo de ventas: " + filePath, e);
         }
         return lines;
     }

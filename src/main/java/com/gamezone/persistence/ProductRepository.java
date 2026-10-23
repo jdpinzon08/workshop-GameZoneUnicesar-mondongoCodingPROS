@@ -1,8 +1,9 @@
 package com.gamezone.persistence;
 
-import com.gamezone.model.Console;
+import com.gamezone.exceptions.PersistenceException;
 import com.gamezone.model.Accessory;
 import com.gamezone.model.Cable;
+import com.gamezone.model.Console;
 import com.gamezone.model.Controller;
 import com.gamezone.model.Memory;
 import com.gamezone.model.Product;
@@ -14,7 +15,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Reads and writes products, including accessories, in a CSV file. */
+/**
+ * Reads and writes products, including accessories, in a CSV file.
+ */
 public class ProductRepository {
 
     private String filePath;
@@ -52,7 +55,7 @@ public class ProductRepository {
             }
 
         } catch (IOException e) {
-            throw new RuntimeException("Error creating products file", e);
+            throw new PersistenceException("Error al crear o verificar el archivo de productos: " + filePath, e);
         }
     }
 
@@ -116,7 +119,7 @@ public class ProductRepository {
         try {
             Files.write(Path.of(filePath), lines);
         } catch (IOException e) {
-            throw new RuntimeException("Error saving products", e);
+            throw new PersistenceException("Error al escribir los productos en el archivo: " + filePath, e);
         }
     }
 
@@ -191,7 +194,7 @@ public class ProductRepository {
             }
 
         } catch (IOException e) {
-            throw new RuntimeException("Error reading products", e);
+            throw new PersistenceException("Error al leer los productos desde el archivo: " + filePath, e);
         }
 
         return products;
