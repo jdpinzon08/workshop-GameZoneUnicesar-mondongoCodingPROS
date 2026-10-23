@@ -29,12 +29,17 @@ public class PersonRepository {
      * Constructs a new PersonRepository with the specified file path.
      *
      * @param filePath the path to the CSV file where people data will be stored
+     * @throws PersistenceException if the people file cannot be created or accessed
      */
     public PersonRepository(String filePath) {
         this.filePath = filePath;
         ensureFileExists();
     }
 
+    /** Creates a repository using the default people CSV file.
+     *
+     * @throws PersistenceException if the default people file cannot be created or accessed
+     */
     public PersonRepository() {
         this("data/persons.csv");
     }
@@ -59,6 +64,7 @@ public class PersonRepository {
      * Format for Seller: Seller,id,name,phoneNumber,employeeId,workShift
      *
      * @param people the list of persons to save
+     * @throws PersistenceException if writing the people file fails
      */
     public void saveAll(List<Person> people) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
@@ -81,6 +87,7 @@ public class PersonRepository {
      * Retrieves all Person objects stored in the CSV file.
      *
      * @return a list of persons, or an empty list if the file doesn't exist
+     * @throws PersistenceException if reading the people file fails
      */
     public List<Person> findAll() {
         List<Person> people = new ArrayList<>();
