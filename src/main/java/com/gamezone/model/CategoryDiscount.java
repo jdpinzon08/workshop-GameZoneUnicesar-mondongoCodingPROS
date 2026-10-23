@@ -49,26 +49,29 @@ public class CategoryDiscount extends Promotion{
 
 
     //new methods
-
+    
     /**
-     * will calculate the discount and iterating on the sale searching for products of the type
+     * Calculates the discount for products matching the configured target type.
+     *
      * @param sale the sale to which the promotion is applied
-     * @return the price without the percentage rested
+     * @return the calculated discount amount
      */
     @Override
     public double calculateDiscount(Sale sale) {
-        percentageDiscount=0.0;
-        double sum = 0.0;
+        if (sale == null) {
+            return 0.0;
+        }
 
-        for (Product product:sale.getProducts()) {
-            if(targetType.isInstance(product)) {
-                sum+= product.getPrice();
+        double eligibleSubtotal = 0.0;
+
+        for (Product product : sale.getProducts()) {
+            if (product != null && targetType.isInstance(product)) {
+                eligibleSubtotal += product.getPrice();
             }
         }
-        if(sum!=0.0){
-            percentageDiscount=(sum*percentage)/100;
-        }
 
+        percentageDiscount = eligibleSubtotal * percentage / 100.0;
         return percentageDiscount;
     }
+
 }
