@@ -23,13 +23,22 @@ public class SaleRepository {
     private final String filePath;
     private List<Sale> loadedSales = new ArrayList<>();
 
-    /** Uses the specified file to store sale records. */
+    /**
+     * Uses the specified file to store sale records.
+     *
+     * @param filePath path where sale records will be stored
+     * @throws PersistenceException if the sales file cannot be created or accessed
+     */
     public SaleRepository(String filePath) {
         this.filePath = filePath;
         ensureFileExists();
     }
 
-    /** Uses the default sales CSV file. */
+    /**
+     * Uses the default sales CSV file.
+     *
+     * @throws PersistenceException if the default sales file cannot be created or accessed
+     */
     public SaleRepository() {
         this("data/sales.csv");
     }
@@ -48,7 +57,13 @@ public class SaleRepository {
         }
     }
 
-    /** CSV fields: saleId,date,customerId,sellerId,productIds,totalAmount,appliedPromotionName,discountAmount. */
+    /**
+     * Saves sales using the CSV fields saleId,date,customerId,sellerId,productIds,totalAmount,
+     * appliedPromotionName, and discountAmount.
+     *
+     * @param sales sales to persist
+     * @throws PersistenceException if writing the sales file fails
+     */
     public void saveAll(List<Sale> sales) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
             for (Sale sale : sales) {
@@ -76,7 +91,15 @@ public class SaleRepository {
         }
     }
 
-    /** Loads sales and reconnects IDs to the shared Product, Customer, and Seller objects. */
+    /**
+     * Loads sales and reconnects IDs to the shared Product, Customer, and Seller objects.
+     *
+     * @param products products available for resolving sale product identifiers
+     * @param customers customers available for resolving customer identifiers
+     * @param sellers sellers available for resolving seller identifiers
+     * @return loaded sales with their related objects resolved
+     * @throws PersistenceException if reading the sales file fails
+     */
     public List<Sale> findAll(List<Product> products, List<Customer> customers,
                               List<Seller> sellers) {
         List<Sale> sales = new ArrayList<>();
@@ -140,7 +163,12 @@ public class SaleRepository {
         return sales;
     }
 
-    /** Returns a sale previously resolved by {@link #findAll(List, List, List)}. */
+    /**
+     * Returns a sale previously resolved by {@link #findAll(List, List, List)}.
+     *
+     * @param saleId identifier of the sale to find
+     * @return the matching sale, or {@code null} when no sale matches
+     */
     public Sale findById(String saleId) {
         if (saleId == null || saleId.isBlank()) {
             return null;
@@ -151,7 +179,12 @@ public class SaleRepository {
                 .orElse(null);
     }
 
-    /** Retained for callers that need to inspect the stored CSV records. */
+    /**
+     * Returns nonblank CSV records from the sales file.
+     *
+     * @return stored nonblank sale records
+     * @throws PersistenceException if reading the sales file fails
+     */
     public List<String> findAllLines() {
         List<String> lines = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
