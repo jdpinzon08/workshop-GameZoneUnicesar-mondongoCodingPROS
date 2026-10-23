@@ -27,8 +27,9 @@ public class Main {
         SaleService saleService = new SaleService(saleRepository, productService, personService);
         saleService.setPromotionService(promotionService);
 
-        WarrantyRepository warrantyRepository = new WarrantyRepository(productService, saleService);
-        WarrantyService warrantyService = new WarrantyService(warrantyRepository);
+        WarrantyRepository warrantyRepository = new WarrantyRepository("data/warranties.csv");
+        WarrantyService warrantyService = new WarrantyService(
+                warrantyRepository, saleRepository, productService);
         saleService.setWarrantyService(warrantyService);
 
         ReturnRepository returnRepository = new ReturnRepository(saleService, productService);
