@@ -75,15 +75,15 @@ public class SaleService {
         if (sale == null) {
             throw new IllegalArgumentException("Sale cannot be null.");
         }
+        List<Product> products = sale.getProducts();
+        if (products == null || products.isEmpty()) {
+            throw new IllegalArgumentException("A sale must contain at least one product.");
+        }
         if (sale.getSaleId() == null || sale.getSaleId().isBlank()) {
             throw new IllegalArgumentException("Sale ID cannot be blank.");
         }
         if (getSaleById(sale.getSaleId()) != null) {
             throw new IllegalArgumentException("Sale already exists: " + sale.getSaleId());
-        }
-        List<Product> products = sale.getProducts();
-        if (products == null || products.isEmpty()) {
-            throw new IllegalArgumentException("A sale must contain at least one product.");
         }
         if (sale.getSaleDate() == null) {
             throw new IllegalArgumentException("Sale date is required.");
