@@ -4,73 +4,6 @@
 classDiagram
     direction TB
 
-%% ========================================================
-%% CAPA TRANSVERSAL: EXCEPCIONES (com.gamezone.exceptions)
-%% ========================================================
-    class RuntimeException {
-}
-
-class GameZoneException {
-<<abstract>>
--String errorCode
-+GameZoneException(String message)
-+GameZoneException(String message, String errorCode)
-+getErrorCode() String
-}
-
-class ResourceNotFoundException {
-+ResourceNotFoundException(String resourceType, String identifier)
-    }
-
-class BusinessRuleException {
-+BusinessRuleException(String message)
-}
-
-class InvalidDataException {
-+InvalidDataException(fieldName: String, reason: String)
-}
-
-class PersistenceException {
-+PersistenceException(String message, Throwable cause)
-    }
-
-RuntimeException <|-- GameZoneException
-GameZoneException <|-- ResourceNotFoundException
-GameZoneException <|-- BusinessRuleException
-GameZoneException <|-- InvalidDataException
-GameZoneException <|-- PersistenceException
-
-%% ========================================================
-%% CAPA TRANSVERSAL: VALIDACIONES (com.gamezone.validation)
-%% ========================================================
-class ProductValidator {
-+validateProductData(String id, String title, double price, int stock)$ void
-+validateStockAvailability(Product product, int requestedQuantity)$ void
-+validateProductExists(Product product, String productId)$ void
-}
-
-class PersonValidator {
-+validatePersonData(String id, String name, String email, String phone)$ void
-+validatePersonExists(Person person, String personId)$ void
-+validateUniquePerson(List~Person~ existing, String newId)$ void
-}
-
-class SaleValidator {
-+validateSaleData(Customer customer, Seller seller, List~Product~ products)$ void
-+validateSaleExists(Sale sale, String saleId)$ void
-    }
-
-ProductValidator ..> InvalidDataException : throws
-ProductValidator ..> BusinessRuleException : throws
-ProductValidator ..> ResourceNotFoundException : throws
-
-PersonValidator ..> InvalidDataException : throws
-PersonValidator ..> BusinessRuleException : throws
-PersonValidator ..> ResourceNotFoundException : throws
-
-SaleValidator ..> InvalidDataException : throws
-SaleValidator ..> BusinessRuleException : throws
-SaleValidator ..> ResourceNotFoundException : throws
 
 %% ========================================================
 %% CAPA DE DOMINIO: MODELO (com.gamezone.model)
@@ -359,6 +292,75 @@ ConsoleMenu ..> BusinessRuleException : catches
 ConsoleMenu ..> InvalidDataException : catches
 ConsoleMenu ..> PersistenceException : catches
 ConsoleMenu ..> GameZoneException : catches
+
+
+%% ========================================================
+%% CAPA TRANSVERSAL: EXCEPCIONES (com.gamezone.exceptions)
+%% ========================================================
+    class RuntimeException {
+    }
+
+    class GameZoneException {
+        <<abstract>>
+        -String errorCode
+        +GameZoneException(String message)
+        +GameZoneException(String message, String errorCode)
+        +getErrorCode() String
+    }
+
+    class ResourceNotFoundException {
+        +ResourceNotFoundException(String resourceType, String identifier)
+    }
+
+    class BusinessRuleException {
+        +BusinessRuleException(String message)
+    }
+
+    class InvalidDataException {
+        +InvalidDataException(fieldName: String, reason: String)
+    }
+
+    class PersistenceException {
+        +PersistenceException(String message, Throwable cause)
+    }
+
+    RuntimeException <|-- GameZoneException
+    GameZoneException <|-- ResourceNotFoundException
+    GameZoneException <|-- BusinessRuleException
+    GameZoneException <|-- InvalidDataException
+    GameZoneException <|-- PersistenceException
+
+%% ========================================================
+%% CAPA TRANSVERSAL: VALIDACIONES (com.gamezone.validation)
+%% ========================================================
+    class ProductValidator {
+        +validateProductData(String id, String title, double price, int stock)$ void
+        +validateStockAvailability(Product product, int requestedQuantity)$ void
+        +validateProductExists(Product product, String productId)$ void
+    }
+
+    class PersonValidator {
+        +validatePersonData(String id, String name, String email, String phone)$ void
+        +validatePersonExists(Person person, String personId)$ void
+        +validateUniquePerson(List~Person~ existing, String newId)$ void
+    }
+
+    class SaleValidator {
+        +validateSaleData(Customer customer, Seller seller, List~Product~ products)$ void
+        +validateSaleExists(Sale sale, String saleId)$ void
+    }
+
+    ProductValidator ..> InvalidDataException : throws
+    ProductValidator ..> BusinessRuleException : throws
+    ProductValidator ..> ResourceNotFoundException : throws
+
+    PersonValidator ..> InvalidDataException : throws
+    PersonValidator ..> BusinessRuleException : throws
+    PersonValidator ..> ResourceNotFoundException : throws
+
+    SaleValidator ..> InvalidDataException : throws
+    SaleValidator ..> BusinessRuleException : throws
+    SaleValidator ..> ResourceNotFoundException : throws
 
 Main --> ConsoleMenu
 ```
