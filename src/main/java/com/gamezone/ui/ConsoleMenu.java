@@ -12,6 +12,9 @@ import com.gamezone.model.Return;
 import com.gamezone.model.Sale;
 import com.gamezone.model.Seller;
 import com.gamezone.model.Warranty;
+import com.gamezone.model.CategoryDiscount;
+import com.gamezone.model.Accessory;
+import com.gamezone.service.PromotionService;
 import com.gamezone.service.PersonService;
 import com.gamezone.service.ProductService;
 import com.gamezone.service.ReturnService;
@@ -33,6 +36,7 @@ public class ConsoleMenu {
     private final SaleService saleService;
     private final WarrantyService warrantyService;
     private final ReturnService returnService;
+    private final PromotionService promotionService;
     private final Scanner scanner;
 
     /**
@@ -49,11 +53,19 @@ public class ConsoleMenu {
     public ConsoleMenu(ProductService productService, PersonService personService,
                        SaleService saleService, WarrantyService warrantyService,
                        ReturnService returnService) {
+        this(productService, personService, saleService, warrantyService, returnService, null);
+    }
+
+    /** Creates the menu with all available services, including promotion management. */
+    public ConsoleMenu(ProductService productService, PersonService personService,
+                       SaleService saleService, WarrantyService warrantyService,
+                       ReturnService returnService, PromotionService promotionService) {
         this.productService = productService;
         this.personService = personService;
         this.saleService = saleService;
         this.warrantyService = warrantyService;
         this.returnService = returnService;
+        this.promotionService = promotionService;
         this.scanner = new Scanner(System.in);
     }
 
@@ -73,6 +85,7 @@ public class ConsoleMenu {
                     case "3": handleListProducts(); break;
                     case "4": handleCheckWarranties(); break;
                     case "5": handleReturns(); break;
+                    case "6": handleRegisterCategoryPromotion(); break;
                     case "0":
                         System.out.println("\nGracias por usar GameZone Unicesar. ¡Hasta pronto!");
                         running = false;
@@ -97,9 +110,53 @@ public class ConsoleMenu {
         if (returnService != null) {
             System.out.println("5. Gestionar devoluciones");
         }
+        if (promotionService != null) {
+            System.out.println("6. Registrar promoción por categoría");
+        }
         System.out.println("0. Salir");
         System.out.println("========================================");
         System.out.print("Seleccione una opción: ");
+    }
+
+    private void handleRegisterCategoryPromotion() {
+        if (promotionService == null) {
+            return;
+        }
+        System.out.println("\n=== registrar promoción por categoría ===");
+        System.out.println("1. videojuegos");
+        System.out.println("2. consolas");
+        System.out.println("3. accesorios");
+        System.out.print("seleccione la categoría: ");
+        String option = scanner.nextLine().trim();
+        String category;
+        Class<?> targetType;
+        switch (option) {
+            case "1" -> { category = "VIDEOGAME"; targetType = com.gamezone.model.VideoGame.class; }
+            case "2" -> { category = "CONSOLE"; targetType = Console.class; }
+            case "3" -> { category = "ACCESSORY"; targetType = Accessory.class; }
+            default -> {
+                System.out.println("[!] categoría inválida.");
+                return;
+            }
+        }
+        try {
+            System.out.print("identificador: ");
+            String id = scanner.nextLine().trim();
+            System.out.print("nombre: ");
+            String name = scanner.nextLine().trim();
+            System.out.print("fecha inicial (AAAA-MM-DD): ");
+            LocalDate startDate = LocalDate.parse(scanner.nextLine().trim());
+            System.out.print("fecha final (AAAA-MM-DD): ");
+            LocalDate endDate = LocalDate.parse(scanner.nextLine().trim());
+            System.out.print("porcentaje de descuento: ");
+            double percentage = Double.parseDouble(scanner.nextLine().trim());
+            CategoryDiscount promotion = new CategoryDiscount(id, name, startDate, endDate,
+                    percentage, category, targetType, percentage);
+            promotionService.registerCategoryDiscount(promotion);
+            System.out.println("[✓] promoción registrada correctamente.");
+        } catch (IllegalArgumentException e) {
+            System.out.println("[X] no se pudo registrar la promoción: " + e.getMessage());
+        }
     }
 
     private void handleRegisterSale() {
@@ -114,7 +171,7 @@ public class ConsoleMenu {
         boolean addingProducts = true;
 
         while (addingProducts) {
-            System.out.print("Ingrese el identificador del producto: ");
+            System.out.print("Ingrese el identificador del producto o accesorio: ");
             String pId = scanner.nextLine().trim();
 
             try {
@@ -129,6 +186,8 @@ public class ConsoleMenu {
                             extendedWarrantyProductIds.add(foundProduct.getId());
                         }
                     }
+                } else {
+                    System.out.println("[!] No se encontró un producto o accesorio con ID " + pId + ".");
                 }
             } catch (ResourceNotFoundException e) {
                 System.out.println("No se encontró el recurso solicitado: " + e.getMessage());
@@ -171,8 +230,7 @@ public class ConsoleMenu {
         saleService.registerSale(sale, extendedWarrantyProductIds);
 
         System.out.println("\n[✓] ¡Venta registrada exitosamente!");
-        System.out.println("Código de venta: " + sale.getSaleId());
-        System.out.println("Total a pagar:   $" + sale.getTotalAmount());
+        System.out.println(sale.generateReceipt());
     }
 
     private void handleReturns() {

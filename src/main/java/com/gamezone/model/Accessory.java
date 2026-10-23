@@ -12,15 +12,19 @@ public abstract class Accessory extends Product {
 
     public Accessory(String id, String title, double price, int stockQuantity, List<String> compatibleConsoles) {
         super(id, title, price, stockQuantity);
-        this.compatibleConsoles = (compatibleConsoles != null) ? compatibleConsoles : new ArrayList<>();
+        this.compatibleConsoles = compatibleConsoles == null
+                ? new ArrayList<>() : new ArrayList<>(compatibleConsoles);
     }
 
+    /** Returns a copy of the console identifiers compatible with this accessory. */
     public List<String> getCompatibleConsoles() {
-        return this.compatibleConsoles;
+        return new ArrayList<>(this.compatibleConsoles);
     }
 
+    /** Replaces the compatible console identifiers with a defensive copy. */
     public void setCompatibleConsoles(List<String> compatibleConsoles) {
-        this.compatibleConsoles = compatibleConsoles;
+        this.compatibleConsoles = compatibleConsoles == null
+                ? new ArrayList<>() : new ArrayList<>(compatibleConsoles);
     }
 
     @Override

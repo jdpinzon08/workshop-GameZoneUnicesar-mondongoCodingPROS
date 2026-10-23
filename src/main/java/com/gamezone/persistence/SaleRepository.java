@@ -21,6 +21,7 @@ import java.util.List;
 public class SaleRepository {
 
     private final String filePath;
+    private List<Sale> loadedSales = new ArrayList<>();
 
     /** Uses the specified file to store sale records. */
     public SaleRepository(String filePath) {
@@ -135,7 +136,19 @@ public class SaleRepository {
         } catch (IOException e) {
             throw new PersistenceException("Error al leer el historial de ventas desde el archivo: " + filePath, e);
         }
+        loadedSales = new ArrayList<>(sales);
         return sales;
+    }
+
+    /** Returns a sale previously resolved by {@link #findAll(List, List, List)}. */
+    public Sale findById(String saleId) {
+        if (saleId == null || saleId.isBlank()) {
+            return null;
+        }
+        return loadedSales.stream()
+                .filter(sale -> saleId.equalsIgnoreCase(sale.getSaleId()))
+                .findFirst()
+                .orElse(null);
     }
 
     /** Retained for callers that need to inspect the stored CSV records. */

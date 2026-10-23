@@ -3,6 +3,7 @@ package com.gamezone.model;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Locale;
 
 /** Represents a completed sale and its customer, seller, products, and date. */
 public class Sale {
@@ -20,7 +21,7 @@ public class Sale {
     /** Creates a sale with its recorded total and associated people and products. */
     public Sale(String saleId, List<Product> products, double totalAmount, String date, Customer customer, Seller seller, String appliedPromotionName, double discountAmount) {
         this.saleId = saleId;
-        this.products = (products != null) ? products : new ArrayList<>();
+        this.products = products == null ? new ArrayList<>() : new ArrayList<>(products);
         this.totalAmount = totalAmount;
         this.date = date;
         this.appliedPromotionName=appliedPromotionName;
@@ -47,7 +48,18 @@ public class Sale {
     }
 
     public String getSaleId() { return saleId; }
-    public List<Product> getProducts() { return products; }
+    /**
+     * Returns a defensive copy of the products included in the sale.
+     * @return products in this sale
+     */
+    public List<Product> getProducts() { return new ArrayList<>(products); }
+    /**
+     * Replaces the products included in the sale.
+     * @param products products to associate with the sale
+     */
+    public void setProducts(List<Product> products) {
+        this.products = products == null ? new ArrayList<>() : new ArrayList<>(products);
+    }
     public double getTotalAmount() { return totalAmount; }
     /** Sets the sale total, including any additional charges. */
     public void setTotalAmount(double totalAmount) { this.totalAmount = totalAmount;}
@@ -60,6 +72,40 @@ public class Sale {
     public void setAppliedPromotionName(String appliedPromotionName) {this.appliedPromotionName = appliedPromotionName;}
     public double getDiscountAmount() {return discountAmount;}
     public void setDiscountAmount(double discountAmount) {this.discountAmount = discountAmount;}
+
+    /**
+     * Returns the extended warranty charge included in the final total.
+     * @return extended warranty cost
+     */
+    public double getExtendedWarrantyCost() {
+        return Math.max(0.0, totalAmount - calculateTotal() + discountAmount);
+    }
+
+    /**
+     * Generates a Spanish receipt with the sale subtotal and all applied charges.
+     * @return formatted sale receipt
+     */
+    public String generateReceipt() {
+        StringBuilder receipt = new StringBuilder("=== COMPROBANTE DE VENTA ===\n");
+        receipt.append("Venta: ").append(saleId).append(" | Fecha: ").append(date).append("\n");
+        receipt.append("Productos:\n");
+        for (Product product : products) {
+            if (product != null) {
+                receipt.append(String.format(Locale.US, " - %s ($%.2f)%n",
+                        product.getTitle(), product.getPrice()));
+            }
+        }
+        receipt.append(String.format(Locale.US, "Subtotal: $%.2f%n", calculateTotal()));
+        String promotion = appliedPromotionName == null || appliedPromotionName.isBlank()
+                ? "Sin promoción" : appliedPromotionName;
+        receipt.append(String.format(Locale.US, "Descuento (%s): -$%.2f%n",
+                promotion, discountAmount));
+        receipt.append(String.format(Locale.US, "Garantías extendidas: $%.2f%n",
+                getExtendedWarrantyCost()));
+        receipt.append(String.format(Locale.US, "Total final: $%.2f%n", totalAmount));
+        receipt.append("============================");
+        return receipt.toString();
+    }
 
 
     /**
