@@ -37,6 +37,25 @@ public final class PersonValidator {
     }
 
     /**
+     * Validates the required identity and contact fields for a person type that has no email field.
+     *
+     * @param id the person's unique identifier
+     * @param name the person's name
+     * @param phone the person's phone number
+     */
+    public static void validatePersonData(String id, String name, String phone) {
+        if (id == null || id.trim().isEmpty()) {
+            throw new InvalidDataException("id", "no puede estar vacío");
+        }
+        if (name == null || name.trim().isEmpty()) {
+            throw new InvalidDataException("name", "no puede estar vacío");
+        }
+        if (phone == null || phone.trim().isEmpty()) {
+            throw new InvalidDataException("phone", "no puede estar vacío");
+        }
+    }
+
+    /**
      * Validates that the person instance is not null.
      */
     public static void validatePersonExists(Person person, String personId) {
