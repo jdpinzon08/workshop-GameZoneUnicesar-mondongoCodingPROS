@@ -1,8 +1,12 @@
 package com.gamezone.service;
 
+import com.gamezone.exceptions.BusinessRuleException;
+import com.gamezone.exceptions.InvalidDataException;
 import com.gamezone.model.*;
 import com.gamezone.persistence.SaleRepository;
 import com.gamezone.service.PromotionService;
+import com.gamezone.validation.ProductValidator;
+import com.gamezone.validation.SaleValidator;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -51,39 +55,41 @@ public class SaleService {
         this.promotionService = promotionService;
     }
 
-    /** Validates and records a sale, applying selected extended warranties. */
+    /**
+     * Validates and records a sale, applying selected extended warranties.
+     *
+     * @param sale sale to register
+     * @param extendedWarrantyProductIds identifiers of products receiving extended warranties
+     * @throws InvalidDataException if the sale or its identifier is invalid
+     * @throws BusinessRuleException if the sale identifier already exists or inventory rules fail
+     * @throws com.gamezone.exceptions.ResourceNotFoundException if a requested product is not in inventory
+     */
     public void registerSale(Sale sale, List<String> extendedWarrantyProductIds) {
         if (sale == null) {
-            throw new IllegalArgumentException("Sale cannot be null.");
+            throw new InvalidDataException("sale", "no puede ser nula");
         }
         if (sale.getSaleId() == null || sale.getSaleId().isBlank()) {
-            throw new IllegalArgumentException("Sale ID cannot be blank.");
+            throw new InvalidDataException("saleId", "no puede estar vacío");
         }
         if (getSaleById(sale.getSaleId()) != null) {
-            throw new IllegalArgumentException("Sale already exists: " + sale.getSaleId());
+            throw new BusinessRuleException("Ya existe una venta con identificador " + sale.getSaleId());
         }
         List<Product> products = sale.getProducts();
-        if (products == null || products.isEmpty()) {
-            throw new IllegalArgumentException("A sale must contain at least one product.");
-        }
+        SaleValidator.validateSaleData(sale.getCustomer(), sale.getSeller(), products);
 
         Map<String, Integer> quantitiesByProductId = new LinkedHashMap<>();
         Map<String, Product> productsById = new LinkedHashMap<>();
         for (Product requestedProduct : products) {
             Product product = requestedProduct == null ? null
                     : productService.findProductById(requestedProduct.getId());
-            if (product == null) {
-                throw new IllegalArgumentException("Product is not in inventory: "
-                        + (requestedProduct == null ? "null" : requestedProduct.getId()));
-            }
+            ProductValidator.validateProductExists(product,
+                    requestedProduct == null ? "null" : requestedProduct.getId());
             quantitiesByProductId.merge(product.getId(), 1, Integer::sum);
             productsById.put(product.getId(), product);
         }
         for (Map.Entry<String, Integer> entry : quantitiesByProductId.entrySet()) {
             Product product = productsById.get(entry.getKey());
-            if (product.getStockQuantity() < entry.getValue()) {
-                throw new IllegalArgumentException("Insufficient stock for product: " + product.getTitle());
-            }
+            ProductValidator.validateStockAvailability(product, entry.getValue());
         }
 
         double extraCost = 0.0;
