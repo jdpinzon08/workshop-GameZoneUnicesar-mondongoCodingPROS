@@ -58,7 +58,7 @@ Guided the integration of ProductService.findProductById() to avoid direct insta
 Session 4: Root Package Placement
 User Prompt (Spanish):
 
-"donde deberia de ir ese main? en modulo de UI? ... asi esta bien?"
+"donde deberia de ir ese main? en modulo de UI? asi esta bien?"
 
 AI Assistance:
 
@@ -68,3 +68,78 @@ Explained why the entry point must sit at the top of the package hierarchy to ma
 
 Impact & Final Outcome
 The AI accelerated debug cycles by reading IDE error frames directly, eliminating runtime syntax issues, and ensuring full compliance with Java standards and clean architecture principles.
+
+
+User Input / Prompt Issued:
+
+"I presented my conceptual draft answering the five design questions: justifying RuntimeException to avoid polluting method signatures with cascading throws clauses; defining domain semantics using SRP and GRASP rather than generic exceptions; placing stateless validators between service and model without persistence access; ensuring backward compatibility through a 10-operation test matrix; and using cascaded specific catch blocks to prevent the instanceof anti-pattern. I requested a critical review of this technical reasoning and a formal translation into academic English."
+
+AI Assistance / Feedback:
+
+Confirmed that avoiding cascading throws and preserving loose coupling are standard arguments for modern Java architectures.
+
+Clarified the boundary in Question 3: emphasizing that the service layer orchestrates transactions and supplies persisted entities to static validators, keeping validators completely stateless and free of file dependencies.
+
+Structured the final English text for docs/exception-analysis.md
+
+
+Engineering Decision / Action Taken: Preserved the original design logic and incorporated the refined English definitions directly into the technical analysis document
+
+
+User Input / Prompt Issued:
+
+"I shared the required signatures for GameZoneException, its four subclasses, and the three validator classes. Then, I provided the existing Mermaid class diagram of the project (containing promotions, warranties, sales, and products). I instructed the AI to organize the diagram with clean layer separators, resolve syntax errors in broken lines, and connect the dependency arrows for throws, catches, and delegations."
+
+
+AI Assistance / Feedback:
+
+Cleaned up dangling syntax tokens (such as an orphaned + in Sale and a misspelled method saleAll in PromotionRepository).
+
+Partitioned the Mermaid specification into five structured visual blocks (exceptions, validation, model, persistence, service, ui) with top-to-bottom layout (direction TB).
+
+Added dependency links (..>) representing exceptions thrown from repositories/validators and caught selectively by ConsoleMenu
+
+Engineering Decision / Action Taken: Verified that the modeled dependencies adhere to the strict layer flow (ui → service → persistence → model) without any direct dependency pointing from validators to persistence
+
+User Input / Prompt Issued:
+
+"I supplied the existing implementations of ProductRepository, PersonRepository, and SaleRepository, explaining that they were authored by peers and needed adjustment. I requested two approaches: a direct refactor replacing System.err and generic exceptions with PersistenceException, and an optimized architectural proposal. All class members and comments had to remain in English, while error message strings were required to stay in Spanish."
+
+AI Assistance / Feedback:
+
+Pointed out that legacy code was swallowing exceptions via System.err.println or throwing generic unchecked exceptions like IllegalStateException and RuntimeException.
+
+Delivered Option 1: a direct refactor wrapping IOException within PersistenceException, including the file path and operation context (reading or writing) in Spanish.
+
+Delivered Option 2: a modernization path utilizing java.nio.file.Files and immutable final paths.
+
+Engineering Decision / Action Taken: Selected Option 1 to satisfy the requirement specification precisely and maintain uniform CSV parsing across all repository files without introducing unwanted side effects
+
+User Input / Prompt Issued:
+
+"I provided ConsoleMenu.java and Main.java. I asked for assistance in implementing differentiated exception handling across the UI without duplicating repetitive catch blocks in every menu handler. Additionally, I requested a comprehensive English README.md documenting the entire system architecture and this new requirement."
+
+AI Assistance / Feedback:
+
+Recommended delegating error formatting to a centralized private helper method (handleException) executed within the primary UI control loop.
+
+Formatted user-facing messages in Spanish for each concrete exception type (ResourceNotFoundException, BusinessRuleException, InvalidDataException, PersistenceException) while concealing technical stack traces.
+
+Drafted a modular, production-ready README.md covering domain models, design patterns (SOLID/GRASP), CSV schemas, and Git Flow rules.
+
+Engineering Decision / Action Taken: Reviewed and tested ConsoleMenu to ensure that handling errors through handleException did not alter the operational steps of sales, warranties, or returns, keeping all original console options fully functional
+
+
+User Input / Prompt Issued:
+
+"I asked how to structure evidence comparing the unrefactored system with the updated system to prove that core behavior was preserved and that only error reporting was enhanced."
+
+AI Assistance / Feedback:
+
+Designed a 10-case comparative test matrix contrasting inputs, expected behavior in the legacy version, and refactored behavior with typed exceptions.
+
+Described an empirical test procedure for persistence failures by temporarily marking local CSV files as read-only to trigger PersistenceException safely.
+
+Provided sample automated JUnit 5 test cases for static validator routines.
+
+Engineering Decision / Action Taken: Adopted the comparative test matrix as formal documentation evidence and executed the corresponding manual verification scenarios via console to confirm proper error message rendering
