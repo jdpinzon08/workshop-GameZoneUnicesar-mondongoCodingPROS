@@ -46,10 +46,27 @@ public class CategoryDiscount extends Promotion{
     public String getObjectCategory() {return objectCategory;}
 
     public void setObjectCategory(String objectCategory) {this.objectCategory = objectCategory;}
+    /**
+     * Returns the configured discount percentage.
+     *
+     * @return the configured discount percentage
+     */
+    public double getPercentage() {
+        return percentage;
+    }
+
+    /**
+     * Returns the class targeted by this promotion.
+     *
+     * @return the target product class
+     */
+    public Class getTargetType() {
+        return targetType;
+    }
 
 
     //new methods
-    
+
     /**
      * Calculates the discount for products matching the configured target type.
      *
