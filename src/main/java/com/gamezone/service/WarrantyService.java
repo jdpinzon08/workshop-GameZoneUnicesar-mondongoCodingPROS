@@ -20,6 +20,7 @@ public class WarrantyService {
     private final SaleRepository saleRepository;
     private final ProductService productService;
     private final List<Warranty> warranties;
+    private final List<Warranty> pendingWarranties;
 
     /**
      * Creates the warranty service and resolves records after sales and products are loaded.
@@ -34,6 +35,7 @@ public class WarrantyService {
         this.saleRepository = saleRepository;
         this.productService = productService;
         this.warranties = new ArrayList<>();
+        this.pendingWarranties = new ArrayList<>();
         loadWarranties();
     }
 
@@ -56,26 +58,61 @@ public class WarrantyService {
 
     /** Assigns the automatic six-month warranty to a console. */
     public BasicWarranty assignBasicWarranty(Product product, Sale sale, LocalDate startDate) {
+        BasicWarranty warranty = createBasicWarranty(product, sale, startDate);
+        persistPendingWarranties();
+        return warranty;
+    }
+
+    /**
+     * Creates the automatic six-month warranty without persisting it yet.
+     * @param product console covered by the warranty
+     * @param sale sale associated with the warranty
+     * @param startDate warranty start date
+     * @return the staged basic warranty
+     */
+    public BasicWarranty createBasicWarranty(Product product, Sale sale, LocalDate startDate) {
         validateWarrantyData(product, sale, startDate);
         if (!(product instanceof Console)) {
             throw new IllegalArgumentException("Basic warranties are available only for consoles.");
         }
         BasicWarranty warranty = new BasicWarranty(generateWarrantyId(), product, sale, startDate);
-        persist(warranty);
         warranties.add(warranty);
+        pendingWarranties.add(warranty);
         return warranty;
     }
 
     /** Assigns a twelve-month extended warranty to a console. */
     public ExtendedWarranty assignExtendedWarranty(Product product, Sale sale, LocalDate startDate) {
+        ExtendedWarranty warranty = createExtendedWarranty(product, sale, startDate);
+        persistPendingWarranties();
+        return warranty;
+    }
+
+    /**
+     * Creates a twelve-month extended warranty without persisting it yet.
+     * @param product console covered by the warranty
+     * @param sale sale associated with the warranty
+     * @param startDate warranty start date
+     * @return the staged extended warranty
+     */
+    public ExtendedWarranty createExtendedWarranty(Product product, Sale sale, LocalDate startDate) {
         validateWarrantyData(product, sale, startDate);
         if (!(product instanceof Console)) {
             throw new IllegalArgumentException("Extended warranties are available only for consoles.");
         }
         ExtendedWarranty warranty = new ExtendedWarranty(generateWarrantyId(), product, sale, startDate);
-        persist(warranty);
         warranties.add(warranty);
+        pendingWarranties.add(warranty);
         return warranty;
+    }
+
+    /** Persists warranties staged by the create methods. */
+    public void persistPendingWarranties() {
+        while (!pendingWarranties.isEmpty()) {
+            Warranty warranty = pendingWarranties.get(0);
+            persist(warranty);
+            pendingWarranties.remove(0);
+        }
     }
 
     private void persist(Warranty warranty) {
