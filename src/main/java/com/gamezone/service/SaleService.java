@@ -15,19 +15,34 @@ public class SaleService {
 
     private final SaleRepository saleRepository;
     private final ProductService productService;
+    private final AccessoryService accessoryService;
     private final List<Sale> sales;
     private WarrantyService warrantyService; // Inyectado vía setter
     private PromotionService promotionService; //tambien inyectado por setters
 
     /** Creates a sale service without a person service. */
     public SaleService(SaleRepository saleRepository, ProductService productService) {
-        this(saleRepository, productService, null);
+        this(saleRepository, productService, null, null);
     }
 
     /** Loads existing sales using the supplied product and person services. */
-    public SaleService(SaleRepository saleRepository, ProductService productService,PersonService personService) {
+    public SaleService(SaleRepository saleRepository, ProductService productService,
+                       PersonService personService) {
+        this(saleRepository, productService, personService, null);
+    }
+
+    /**
+     * Loads existing sales and accepts the service that manages accessory stock.
+     * @param saleRepository repository used to load and save sales
+     * @param productService service used to resolve products and update their stock
+     * @param personService service used to resolve customers and sellers
+     * @param accessoryService service used to update accessory stock
+     */
+    public SaleService(SaleRepository saleRepository, ProductService productService,
+                       PersonService personService, AccessoryService accessoryService) {
         this.saleRepository = saleRepository;
         this.productService = productService;
+        this.accessoryService = accessoryService;
         List<Customer> customers = personService == null
                 ? new ArrayList<>() : personService.getAllCustomers();
         List<Seller> sellers = personService == null
@@ -51,7 +66,11 @@ public class SaleService {
         this.promotionService = promotionService;
     }
 
-    /** Validates and records a sale, applying selected extended warranties. */
+    /**
+     * Registers a sale with promotions, warranties, inventory updates, and persistence.
+     * @param sale sale details and requested products
+     * @param extendedWarrantyProductIds IDs of consoles receiving an extended warranty
+     */
     public void registerSale(Sale sale, List<String> extendedWarrantyProductIds) {
         if (sale == null) {
             throw new IllegalArgumentException("Sale cannot be null.");
@@ -66,9 +85,13 @@ public class SaleService {
         if (products == null || products.isEmpty()) {
             throw new IllegalArgumentException("A sale must contain at least one product.");
         }
+        if (sale.getSaleDate() == null) {
+            throw new IllegalArgumentException("Sale date is required.");
+        }
 
         Map<String, Integer> quantitiesByProductId = new LinkedHashMap<>();
         Map<String, Product> productsById = new LinkedHashMap<>();
+        List<Product> resolvedProducts = new ArrayList<>();
         for (Product requestedProduct : products) {
             Product product = requestedProduct == null ? null
                     : productService.findProductById(requestedProduct.getId());
@@ -76,6 +99,14 @@ public class SaleService {
                 throw new IllegalArgumentException("Product is not in inventory: "
                         + (requestedProduct == null ? "null" : requestedProduct.getId()));
             }
+            if (product instanceof Accessory && accessoryService != null) {
+                product = accessoryService.findById(product.getId());
+                if (product == null) {
+                    throw new IllegalArgumentException("Accessory is not in inventory: "
+                            + requestedProduct.getId());
+                }
+            }
+            resolvedProducts.add(product);
             quantitiesByProductId.merge(product.getId(), 1, Integer::sum);
             productsById.put(product.getId(), product);
         }
@@ -86,37 +117,61 @@ public class SaleService {
             }
         }
 
-        double extraCost = 0.0;
-        LocalDate saleDate = LocalDate.now();
+        sale.setProducts(resolvedProducts);
+        double subtotal = sale.calculateTotal();
+        sale.setTotalAmount(subtotal);
+        sale.setDiscountAmount(0.0);
+        sale.setAppliedPromotionName("");
 
-        // Corrección del bucle de garantías
-        if (warrantyService != null) {
-            for (Product product : products) {
-                if (product instanceof Console) {
-                    boolean wantsExtended = extendedWarrantyProductIds != null
-                            && extendedWarrantyProductIds.contains(product.getId());
+        if (promotionService != null) {
+            Promotion bestPromotion = promotionService.findBestPromotionFor(sale);
+            if (bestPromotion != null) {
+                double discount = bestPromotion.calculateDiscount(sale);
+                discount = Math.max(0.0, Math.min(subtotal, discount));
+                sale.setDiscountAmount(discount);
+                sale.setAppliedPromotionName(bestPromotion.getName());
+            }
+        }
 
-                    if (wantsExtended) {
-                        ExtendedWarranty ext =
-                                warrantyService.assignExtendedWarranty(product, sale, saleDate);
-                        extraCost += ext.getAdditionalCost();
-                    } else {
-                        warrantyService.assignBasicWarranty(product, sale, saleDate);
-                    }
+        double extendedWarrantyCost = 0.0;
+        LocalDate saleDate = sale.getSaleDate();
+
+        for (Product product : resolvedProducts) {
+            if (product instanceof Console) {
+                boolean wantsExtended = extendedWarrantyProductIds != null
+                        && extendedWarrantyProductIds.contains(product.getId());
+                if (warrantyService == null) {
+                    throw new IllegalStateException("Warranty service is required to sell a console.");
+                }
+                if (wantsExtended) {
+                    ExtendedWarranty warranty = warrantyService.createExtendedWarranty(
+                            product, sale, saleDate);
+                    extendedWarrantyCost += warranty.getAdditionalCost();
+                } else {
+                    warrantyService.createBasicWarranty(product, sale, saleDate);
                 }
             }
         }
 
+        sale.setTotalAmount(subtotal - sale.getDiscountAmount() + extendedWarrantyCost);
+
         for (Map.Entry<String, Integer> entry : quantitiesByProductId.entrySet()) {
             Product product = productsById.get(entry.getKey());
-            productService.updateStock(product.getId(), product.getStockQuantity() - entry.getValue());
+            int updatedStock = product.getStockQuantity() - entry.getValue();
+            if (product instanceof Accessory && accessoryService != null) {
+                accessoryService.updateStock(product.getId(), updatedStock);
+            } else {
+                productService.updateStock(product.getId(), updatedStock);
+            }
         }
-        sale.setTotalAmount(sale.calculateTotal() + extraCost);
         sales.add(sale);
         if (sale.getCustomer() != null) {
             sale.getCustomer().addSaleToHistory(sale);
         }
         saleRepository.saveAll(sales);
+        if (warrantyService != null) {
+            warrantyService.persistPendingWarranties();
+        }
     }
 
     /** Returns a copy of the registered sales. */
