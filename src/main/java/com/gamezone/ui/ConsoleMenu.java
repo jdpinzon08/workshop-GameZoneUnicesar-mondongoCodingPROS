@@ -171,7 +171,7 @@ public class ConsoleMenu {
         boolean addingProducts = true;
 
         while (addingProducts) {
-            System.out.print("Ingrese el identificador del producto: ");
+            System.out.print("Ingrese el identificador del producto o accesorio: ");
             String pId = scanner.nextLine().trim();
 
             try {
@@ -186,6 +186,8 @@ public class ConsoleMenu {
                             extendedWarrantyProductIds.add(foundProduct.getId());
                         }
                     }
+                } else {
+                    System.out.println("[!] No se encontró un producto o accesorio con ID " + pId + ".");
                 }
             } catch (ResourceNotFoundException e) {
                 System.out.println("No se encontró el recurso solicitado: " + e.getMessage());
@@ -228,8 +230,7 @@ public class ConsoleMenu {
         saleService.registerSale(sale, extendedWarrantyProductIds);
 
         System.out.println("\n[✓] ¡Venta registrada exitosamente!");
-        System.out.println("Código de venta: " + sale.getSaleId());
-        System.out.println("Total a pagar:   $" + sale.getTotalAmount());
+        System.out.println(sale.generateReceipt());
     }
 
     private void handleReturns() {
