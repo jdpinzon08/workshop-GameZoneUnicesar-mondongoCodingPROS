@@ -73,6 +73,9 @@ public class PromotionService {
      * @param categoryDiscount the category discount
      */
     public void registerCategoryDiscount(CategoryDiscount categoryDiscount){
+        if (categoryDiscount == null) {
+            throw new IllegalArgumentException("Category promotion cannot be null.");
+        }
         validateCategory(categoryDiscount.getObjectCategory());
         if(findPromoByID(categoryDiscount.getId())!=null){
             throw new IllegalArgumentException("category promotion with id:"+ categoryDiscount.getId()+" already exist");
