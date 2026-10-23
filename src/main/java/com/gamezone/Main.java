@@ -1,36 +1,37 @@
 package com.gamezone;
 
+import com.gamezone.persistence.AccessoryRepository;
 import com.gamezone.persistence.PersonRepository;
 import com.gamezone.persistence.ProductRepository;
+import com.gamezone.persistence.ReturnRepository;
 import com.gamezone.persistence.SaleRepository;
-import com.gamezone.service.PersonService;
-import com.gamezone.service.ProductService;
-import com.gamezone.service.SaleService;
+import com.gamezone.persistence.WarrantyRepository;
+import com.gamezone.service.*;
 import com.gamezone.ui.ConsoleMenu;
 
-/**
- * Main application entry point for GameZone Unicesar.
- * Initializes core persistence layers, injects business services,
- * and launches the primary user interface handler.
- *
- * @author Technical Lead (mondongoCodingPROS)
- * @version 1.0.0
- */
+/** Starts GameZone and connects its repositories, services, and console menu. */
 public class Main {
-
+    /** Builds the application components and starts the console interface. */
     public static void main(String[] args) {
-        // Instantiate repositories with required file path parameters
         ProductRepository productRepository = new ProductRepository();
-        PersonRepository personRepository = new PersonRepository("persons.csv");
+        AccessoryRepository accessoryRepository = new AccessoryRepository(productRepository);
+        PersonRepository personRepository = new PersonRepository("data/persons.csv");
         SaleRepository saleRepository = new SaleRepository();
 
-        // Instantiate business service layer dependencies
         ProductService productService = new ProductService(productRepository);
         PersonService personService = new PersonService(personRepository);
-        SaleService saleService = new SaleService(saleRepository, productService);
+        AccessoryService accessoryService = new AccessoryService(accessoryRepository, productService);
+        SaleService saleService = new SaleService(saleRepository, productService, personService);
 
-        // Launch the text-based console user interface
-        ConsoleMenu consoleMenu = new ConsoleMenu(productService, personService, saleService);
+        WarrantyRepository warrantyRepository = new WarrantyRepository(productService, saleService);
+        WarrantyService warrantyService = new WarrantyService(warrantyRepository);
+        saleService.setWarrantyService(warrantyService);
+
+        ReturnRepository returnRepository = new ReturnRepository(saleService, productService);
+        ReturnService returnService = new ReturnService(returnRepository, saleService, productService);
+
+        ConsoleMenu consoleMenu = new ConsoleMenu(productService, personService, saleService,
+                warrantyService, returnService);
         consoleMenu.start();
     }
 }

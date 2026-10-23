@@ -4,10 +4,10 @@
 
  1. ***What attributes are common to all people interacting with the store, and which are specific to each role? How is this distinction reflected in a class hierarchy?***
 
-* **Common Attributes:** Name (`name`), Identification Document (`id`), and Contact Phone Number (`phnNumber`)
+* **Common Attributes:** Name (`name`), Identification Document (`id`), and Contact Phone Number (`phoneNumber`)
 * **Specific Attributes:**
-   * **Customer (`Customer`):** Email address (`email`) and purchase history (`prchHistory`).
-   * **Seller (`Seller`):** Employee code (`employeeId`) and work shift (`wrkShift`)
+   * **Customer (`Customer`):** Email address (`email`) and purchase history (`purchaseHistory`).
+   * **Seller (`Seller`):** Employee code (`employeeId`) and work shift (`workShift`)
 * **Class Hierarchy Distinction:** Common attributes are grouped in an abstract base class called `Person`. Specific attributes are declared in the derived concrete classes (`Customer` and `Seller`), which extend `Person` using inheritance
 
  2. ***Should there be a class representing a "generic person" without specifying a role? Why or why not? What implication does this decision have on instantiation?***
@@ -25,9 +25,10 @@
 * **Specific Characteristics:**
    * **Video Games (`VideoGame`):** Platform (`platform`), genre (`genre`), and recommended age rating (`ageRating`)
    * **Consoles (`Console`):** Brand (`brand`), model (`model`), and generation (`generation`)
+   * **Accessories (`Accessory`):** Compatible console IDs (`compatibleConsoles`), with subtype details in `Controller`, `Cable`, and `Memory`.
  4. ***Each product type must present a complete description integrating its particular characteristics. How should this behavior be declared in the base class to guarantee custom implementation? What OOP mechanism enables this?***
 
-* **Declaration in Base Class:** The base class `Product` must declare an abstract method named `public abstract String getDescription()`. Since it is abstract and has nobody in the base class, Java enforces that every concrete subclass (`VideoGame` and `Console`) provides its own specific implementation using the `@Override` annotation
+* **Declaration in Base Class:** The base class `Product` declares `public abstract String getDescription()`. `VideoGame`, `Console`, and `Accessory` provide implementations; concrete accessory subtypes inherit the implementation from `Accessory`.
 * **OOP Mechanism:** **Polymorphism** (specifically method overriding via **Abstraction**). This allows the system to treat all products uniformly while executing the specific description behavior defined by each subclass
 
 ### On sales and relationships between entities
@@ -40,8 +41,8 @@
 * **Justification:** Inheritance does not apply because a Sale is not a type of Person or Product. Composition does not apply because destroying a Sale record should not delete the Customer, Seller, or Products from the database, as they have independent lifecycles
  6. ***Should the sale be responsible for calculating its own total, or should this responsibility belong to another class? Argument your decision***
 
-* **Decision:** Yes, the `Sale` class should be responsible for calculating its own total by implementing a method (e.g., `calculateTotal()`)
-* **Justification:** Following object-oriented design principles (specifically the Information Expert pattern), the class that holds the required data should perform the operations on it. Since `Sale` contains the collection of purchased products along with their prices and quantities, it has all the necessary information to compute the total directly, avoiding unnecessary coupling with external classes
+* **Decision:** `Sale.calculateTotal()` calculates the product subtotal from its products. `SaleService.registerSale()` adds the selected extended-warranty costs to `totalAmount` as part of sale registration.
+* **Justification:** `Sale` owns the product subtotal calculation; the service coordinates warranty assignment and the final amount because that cost is produced by the warranty workflow.
 
 ### Regarding business restrictions
 
@@ -64,9 +65,9 @@
  9. ***The system must be organized into four layers: model, persistence, services, and user interface. What type of classes belong to each layer? What criterion determines in which layer a class should be located?***
 
 * **Classes per Layer:**
-  * **Model (`model`):** Domain entity classes representing real-world business objects (`Person`, `Customer`, `Seller`, `Product`, `VideoGame`, `Console`, `Sale`)
-  * **Persistence (`persistence`):** Data access classes responsible for loading, reading, and saving data to storage files (`ProductRepository`, `PersonRepository`, `SaleRepository`)
-  * **Services (`service`):** Business logic classes that enforce rules, validate constraints, and orchestrate workflows (`ProductService`, `PersonService`, `SaleService`)
+  * **Model (`model`):** Domain entities (`Person`, `Customer`, `Seller`, all product types, `Sale`, `Return`, and warranty types)
+  * **Persistence (`persistence`):** CSV repositories for products/accessories, people, sales, returns, and warranties
+  * **Services (`service`):** Business logic and orchestration (`ProductService`, `AccessoryService`, `PersonService`, `SaleService`, `ReturnService`, `WarrantyService`)
   * **User Interface (`ui`):** Presentation classes managing console interaction, menu navigation, input collection, and displaying outputs (`ConsoleMenu`)
 * **Classification Criterion:** Classes are placed based on the **Separation of Concerns (SoC)** principle. A class is assigned to a layer according to its primary responsibility: state representation (`model`), file I/O (`persistence`), business validation/rules (`service`), or user interaction (`ui`)
 
@@ -86,8 +87,9 @@
   * `service` $\rightarrow$ `model`
   * `persistence` $\rightarrow$ `model`
   * `model` $\rightarrow$ None (Independent)
+* **Integration exception:** `ReturnRepository` and `WarrantyRepository` use `SaleService.getSaleById(saleId)` and `ProductService` to reconnect persisted IDs to the shared domain objects, as required by the integrated module contracts.
 * **Forbidden Dependencies:**
   * Direct access from `ui` to `persistence` (bypassing business rule validations in the service layer)
   * Domain `model` referencing higher layers (`persistence`, `service`, or `ui`)
-  * Any circular or upward dependencies (e.g., `persistence` calling `ui`)
+  * Dependencies from persistence to the UI or from model to any outer layer. Sale lookups are the explicit persistence-to-service integration used by the return and warranty repositories.
 * **Justification for Allowed Direction:** This unidirectional dependency flow ensures that core business logic (`model`) remains completely independent and isolated from technical implementation details (like file formats or UI type). Lower layers do not know about higher layers, allowing the UI or persistence storage to be replaced or modified without altering core domain entities

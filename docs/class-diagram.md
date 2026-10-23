@@ -2,205 +2,365 @@
 
 ```mermaid
 classDiagram
+    direction TB
 
-    %% ----------------------------------------------------
-    %% MODEL LAYER (com.gamezone.model)
-    %% ----------------------------------------------------
-    namespace Model {
-        class Person {
-            <<abstract>>
-            -String id
-            -String name
-            -String phoneNumber
-            +Person(String id, String name, String phoneNumber)
-            +getId() String
-            +getName() String
-            +getPhoneNumber() String
-            +setId(String id) void
-            +setName(String name) void
-            +setPhoneNumber(String phoneNumber) void
-        }
 
-        class Customer {
-            -String email
-            -List~Sale~ purchaseHistory
-            +Customer(String id, String name, String phoneNumber, String email)
-            +getEmail() String
-            +getPurchaseHistory() List~Sale~
-            +setEmail(String email) void
-            +addSaleToHistory(Sale sale) void
-        }
+%% ========================================================
+%% CAPA DE DOMINIO: MODELO (com.gamezone.model)
+%% ========================================================
+class Person {
+<<abstract>>
+-String id
+-String name
+-String phoneNumber
+}
+class Customer {
+-String email
+-List~Sale~ purchaseHistory
+}
+class Seller {
+-String employeeId
+-String workShift
+}
+Person <|-- Customer
+Person <|-- Seller
 
-        class Seller {
-            -String employeeId
-            -String workShift
-            +Seller(String id, String name, String phoneNumber, String employeeId, String workShift)
-            +getEmployeeId() String
-            +getWorkShift() String
-            +setEmployeeId(String employeeId) void
-            +setWorkShift(String workShift) void
-        }
+class Product {
+<<abstract>>
+-String id
+-String title
+-double price
+-int stockQuantity
+    }
+class VideoGame {
+-String platform
+-String genre
+-String ageRating
+}
+class Console {
+-String brand
+-String model
+-String generation
+}
+class Accessory {
+<<abstract>>
+-List~String~ compatibleConsoles
+}
+class Controller {
+-String connectionType
+}
+class Cable {
+-double lengthInMeters
+-String connectorType
+}
+class Memory {
+-int capacityInGB
+-String memoryType
+}
+Product <|-- VideoGame
+Product <|-- Console
+Product <|-- Accessory
+Accessory <|-- Controller
+Accessory <|-- Cable
+Accessory <|-- Memory
 
-        class Product {
-            <<abstract>>
-            -String id
-            -String title
-            -double price
-            -int stockQuantity
-            +Product(String id, String title, double price, int stockQuantity)
-            +getId() String
-            +getTitle() String
-            +getPrice() double
-            +getStockQuantity() int
-            +setId(String id) void
-            +setTitle(String title) void
-            +setPrice(double price) void
-            +setStockQuantity(int stockQuantity) void
-            +getDescription()* String
-        }
+class Promotion {
+<<abstract>>
+-String id
+-String name
+-LocalDate startDate
+-LocalDate endDate
++isActive(LocalDate date) boolean
++calculateDiscount(Sale sale)* double
+}
+class PercentageDiscount {
+-double percentage
++calculateDiscount(Sale sale) double
+}
+class CategoryDiscount {
+-double discountPercentage
+-String categoryObjective
++calculateDiscount(Sale sale) double
+}
+class BulkPurchaseDiscount {
+-int minimumQuantity
+-double discountPercentage
+-Class targetType
++calculateDiscount(Sale sale) double
+    }
+Promotion <|-- PercentageDiscount
+Promotion <|-- CategoryDiscount
+Promotion <|-- BulkPurchaseDiscount
 
-        class VideoGame {
-            -String platform
-            -String genre
-            -String ageRating
-            +VideoGame(String id, String title, double price, int stockQuantity, String platform, String genre, String ageRating)
-            +getPlatform() String
-            +getGenre() String
-            +getAgeRating() String
-            +getDescription() String
-        }
+class Sale {
+-String saleId
+-List~Product~ products
+-double totalAmount
+-String date
+-Customer customer
+-Seller seller
+-String appliedPromotionName
+-double discountAmount
++getSaleId() String
++calculateTotal() double
++canBeReturned() boolean
++generateReceipt() String
+}
 
-        class Console {
-            -String brand
-            -String model
-            -String generation
-            +Console(String id, String title, double price, int stockQuantity, String brand, String model, String generation)
-            +getBrand() String
-            +getModel() String
-            +getGeneration() String
-            +getDescription() String
-        }
+class Return {
+-String id
+-LocalDate returnDate
+-Sale sale
+-List~Product~ returnedProducts
+-String reason
+-double refundAmount
++calculateRefundAmount() double
++generateReturnReceipt() String
+}
 
-        class Sale {
-            -String saleId
-            -String date
-            -Customer customer
-            -Seller seller
-            -List~Product~ products
-            -double totalAmount
-            +Sale(String saleId, String date, Customer customer, Seller seller, List~Product~ products)
-            +getSaleId() String
-            +getDate() String
-            +getCustomer() Customer
-            +getSeller() Seller
-            +getProducts() List~Product~
-            +getTotalAmount() double
-            +calculateTotal() double
-        }
+class Warranty {
+<<abstract>>
+-String id
+-Product product
+-Sale sale
+-LocalDate startDate
+-LocalDate endDate
++isActive(LocalDate date) boolean
++getDurationInMonths()* int
++getWarrantyType()* String
++getAdditionalCost()* double
+}
+class BasicWarranty {
++getDurationInMonths() int
++getWarrantyType() String
++getAdditionalCost() double
+}
+class ExtendedWarranty {
++getDurationInMonths() int
++getWarrantyType() String
++getAdditionalCost() double
+}
+Warranty <|-- BasicWarranty
+Warranty <|-- ExtendedWarranty
+
+Sale "0..*" --> "1" Customer
+Sale "0..*" --> "1" Seller
+Sale "1" -- "1..*" Product
+Return "0..*" --> "1" Sale
+Return "0..*" -- "1..*" Product
+Warranty "0..*" --> "1" Product
+Warranty "0..*" --> "1" Sale
+
+%% ========================================================
+%% CAPA DE ACCESO A DATOS (com.gamezone.persistence)
+%% ========================================================
+class ProductRepository {
++saveAll(List~Product~ list) void
++findAll() List~Product~
+    }
+class AccessoryRepository {
++saveAll(List~Accessory~ list) void
++loadAll() List~Accessory~
+    }
+class PersonRepository {
++saveAll(List~Person~ list) void
++findAll() List~Person~
+    }
+class SaleRepository {
++saveAll(List~Sale~ list) void
++findAll(products, customers, sellers) List~Sale~
+}
+class ReturnRepository {
++saveAll(List~Return~ list) void
++loadAll() List~Return~
+    }
+class WarrantyRepository {
++saveAll(List~Warranty~ list) void
++loadAll() List~Warranty~
+    }
+class PromotionRepository {
++saveAll(List~Promotion~ list) void
++loadAll() List~Promotion~
     }
 
-    %% Inheritance Relationships
-    Person <|-- Customer : extends
-    Person <|-- Seller : extends
-    Product <|-- VideoGame : extends
-    Product <|-- Console : extends
+AccessoryRepository --> ProductRepository : shared product CSV
+ReturnRepository ..> SaleService : getSaleById(saleId)
+ReturnRepository ..> ProductService : resolve productId
+WarrantyRepository ..> SaleService : getSaleById(saleId)
+WarrantyRepository ..> ProductService : resolve productId
 
-    %% Sale Associations
-    Sale "0..*" -- "1" Customer : purchased by
-    Sale "0..*" -- "1" Seller : handled by
-    Sale "0..*" -- "1..*" Product : contains
+ProductRepository ..> PersistenceException : throws
+PersonRepository ..> PersistenceException : throws
+SaleRepository ..> PersistenceException : throws
+ReturnRepository ..> PersistenceException : throws
+WarrantyRepository ..> PersistenceException : throws
+PromotionRepository ..> PersistenceException : throws
 
-    %% ----------------------------------------------------
-    %% PERSISTENCE LAYER (com.gamezone.persistence)
-    %% ----------------------------------------------------
-    namespace Persistence {
-        class ProductRepository {
-            -String filePath
-            +saveAll(List~Product~ products) void
-            +findAll() List~Product~
-        }
+%% ========================================================
+%% CAPA DE LÓGICA DE NEGOCIO (com.gamezone.service)
+%% ========================================================
+class ProductService {
+-ProductRepository productRepository
++registerProduct(...) void
++findProductById(String id) Product
++updateStock(String id, int qty) void
+}
+class AccessoryService {
+-AccessoryRepository accessoryRepository
++listAllAccessories() List~Accessory~
+}
+class PersonService {
+-PersonRepository personRepository
++registerPerson(...) void
++findPersonById(String id) Person
+}
+class SaleService {
+-SaleRepository saleRepository
+-ProductService productService
++registerSale(Sale sale, List~String~ items) void
++getSaleById(String saleId) Sale
++getAllSales() List~Sale~
++getSalesByCustomer(String customerId) List~Sale~
++getSalesBySeller(String sellerId) List~Sale~
+}
+class ReturnService {
+-ReturnRepository returnRepository
+-SaleService saleService
+-ProductService productService
++registerReturn(String saleId, List~String~ productIds, String reason) Return
+}
+class WarrantyService {
+-WarrantyRepository warrantyRepository
++assignBasicWarranty(...) Warranty
++assignExtendedWarranty(...) Warranty
+}
+class PromotionService {
+-PromotionRepository promotionRepository
++registerPercentageDiscount(...) void
++registerCategoryDiscount(...) void
++registerBulkPurchaseDiscount(...) void
++listAllPromotions() List~Promotion~
++listActivePromotions() List~Promotion~
++findBestPromotionFor(Sale sale) Promotion
++findById(String id) Promotion
+}
 
-        class PersonRepository {
-            -String filePath
-            +saveAll(List~Person~ people) void
-            +findAll() List~Person~
-        }
+ProductService --> ProductRepository
+AccessoryService --> AccessoryRepository
+PersonService --> PersonRepository
+SaleService --> SaleRepository
+SaleService --> ProductService
+SaleService ..> WarrantyService : warranty assignment
+ReturnService --> ReturnRepository
+ReturnService --> SaleService
+ReturnService --> ProductService
+PromotionService --> PromotionRepository
 
-        class SaleRepository {
-            -String filePath
-            +saveAll(List~Sale~ sales) void
-            +findAll() List~Sale~
-        }
+ProductService ..> ProductValidator : delegates
+PersonService ..> PersonValidator : delegates
+SaleService ..> SaleValidator : delegates
+
+%% ========================================================
+%% CAPA DE PRESENTACIÓN & ENTRADA (com.gamezone.ui)
+%% ========================================================
+class ConsoleMenu {
+-ProductService productService
+-AccessoryService accessoryService
+-PersonService personService
+-SaleService saleService
+-ReturnService returnService
+-WarrantyService warrantyService
+-PromotionService promotionService
++displayMenu() void
++handleUserAction() void
     }
 
-    %% Persistence Dependencies on Model
-    ProductRepository ..> Product : persists
-    PersonRepository ..> Person : persists
-    SaleRepository ..> Sale : persists
+class Main {
++main(String[] args)$ void
+}
 
-    %% ----------------------------------------------------
-    %% SERVICE LAYER (com.gamezone.service)
-    %% ----------------------------------------------------
-    namespace Service {
-        class ProductService {
-            -ProductRepository repository
-            -List~Product~ inventory
-            +registerProduct(Product product) void
-            +getAllProducts() List~Product~
-            +findProductById(String id) Product
-            +updateStock(String productId, int newStock) void
-        }
+ConsoleMenu --> ProductService
+ConsoleMenu --> AccessoryService
+ConsoleMenu --> PersonService
+ConsoleMenu --> SaleService
+ConsoleMenu --> ReturnService
+ConsoleMenu --> WarrantyService
+ConsoleMenu --> PromotionService
 
-        class PersonService {
-            -PersonRepository repository
-            -List~Person~ people
-            +registerCustomer(Customer customer) void
-            +getAllCustomers() List~Customer~
-            +getAllSellers() List~Seller~
-            +findCustomerById(String id) Customer
-            +findSellerById(String employeeId) Seller
-        }
+ConsoleMenu ..> ResourceNotFoundException : catches
+ConsoleMenu ..> BusinessRuleException : catches
+ConsoleMenu ..> InvalidDataException : catches
+ConsoleMenu ..> PersistenceException : catches
+ConsoleMenu ..> GameZoneException : catches
 
-        class SaleService {
-            -SaleRepository saleRepository
-            -ProductService productService
-            -PersonService personService
-            -List~Sale~ salesHistory
-            +processSale(String customerId, String sellerId, List~String~ productIds) Sale
-            +getAllSales() List~Sale~
-            +getSalesByCustomer(String customerId) List~Sale~
-            +getSalesBySeller(String sellerId) List~Sale~
-        }
+
+%% ========================================================
+%% CAPA TRANSVERSAL: EXCEPCIONES (com.gamezone.exceptions)
+%% ========================================================
+    class RuntimeException {
     }
 
-    %% Service Layer Dependencies
-    ProductService --> ProductRepository : uses
-    PersonService --> PersonRepository : uses
-    SaleService --> SaleRepository : uses
-    SaleService --> ProductService : uses
-    SaleService --> PersonService : uses
-    ProductService ..> Product : manages
-    PersonService ..> Person : manages
-    SaleService ..> Sale : processes
-
-    %% ----------------------------------------------------
-    %% USER INTERFACE LAYER (com.gamezone.ui)
-    %% ----------------------------------------------------
-    namespace UI {
-        class ConsoleMenu {
-            -ProductService productService
-            -PersonService personService
-            -SaleService saleService
-            +start() void
-            -showMainMenu() void
-            -handleProductMenu() void
-            -handlePersonMenu() void
-            -handleSaleMenu() void
-        }
+    class GameZoneException {
+        <<abstract>>
+        -String errorCode
+        +GameZoneException(String message)
+        +GameZoneException(String message, String errorCode)
+        +getErrorCode() String
     }
 
-    %% UI Layer Dependencies
-    ConsoleMenu --> ProductService : uses
-    ConsoleMenu --> PersonService : uses
-    ConsoleMenu --> SaleService : uses
+    class ResourceNotFoundException {
+        +ResourceNotFoundException(String resourceType, String identifier)
+    }
+
+    class BusinessRuleException {
+        +BusinessRuleException(String message)
+    }
+
+    class InvalidDataException {
+        +InvalidDataException(fieldName: String, reason: String)
+    }
+
+    class PersistenceException {
+        +PersistenceException(String message, Throwable cause)
+    }
+
+    RuntimeException <|-- GameZoneException
+    GameZoneException <|-- ResourceNotFoundException
+    GameZoneException <|-- BusinessRuleException
+    GameZoneException <|-- InvalidDataException
+    GameZoneException <|-- PersistenceException
+
+%% ========================================================
+%% CAPA TRANSVERSAL: VALIDACIONES (com.gamezone.validation)
+%% ========================================================
+    class ProductValidator {
+        +validateProductData(String id, String title, double price, int stock)$ void
+        +validateStockAvailability(Product product, int requestedQuantity)$ void
+        +validateProductExists(Product product, String productId)$ void
+    }
+
+    class PersonValidator {
+        +validatePersonData(String id, String name, String email, String phone)$ void
+        +validatePersonExists(Person person, String personId)$ void
+        +validateUniquePerson(List~Person~ existing, String newId)$ void
+    }
+
+    class SaleValidator {
+        +validateSaleData(Customer customer, Seller seller, List~Product~ products)$ void
+        +validateSaleExists(Sale sale, String saleId)$ void
+    }
+
+    ProductValidator ..> InvalidDataException : throws
+    ProductValidator ..> BusinessRuleException : throws
+    ProductValidator ..> ResourceNotFoundException : throws
+
+    PersonValidator ..> InvalidDataException : throws
+    PersonValidator ..> BusinessRuleException : throws
+    PersonValidator ..> ResourceNotFoundException : throws
+
+    SaleValidator ..> InvalidDataException : throws
+    SaleValidator ..> BusinessRuleException : throws
+    SaleValidator ..> ResourceNotFoundException : throws
+
+Main --> ConsoleMenu
 ```

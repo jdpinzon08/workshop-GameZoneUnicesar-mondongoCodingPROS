@@ -46,6 +46,39 @@ classDiagram
         +getDescription() String
     }
 
+    class Accessory {
+        <<abstract>>
+        #List~String~ compatibleConsoles
+    }
+
+    class Controller {
+        -String connectionType
+    }
+
+    class Cable {
+        -double lengthInMeters
+        -String connectorType
+    }
+
+    class Memory {
+        -int capacityInGB
+        -String memoryType
+    }
+
     Product <|-- VideoGame : extends
     Product <|-- Console : extends
+    Product <|-- Accessory : extends
+    Accessory <|-- Controller : extends
+    Accessory <|-- Cable : extends
+    Accessory <|-- Memory : extends
+
+    %% Warranty Hierarchy
+    class Warranty {
+        <<abstract>>
+    }
+    class BasicWarranty
+    class ExtendedWarranty
+
+    Warranty <|-- BasicWarranty : extends
+    Warranty <|-- ExtendedWarranty : extends
 ```
