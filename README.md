@@ -3,149 +3,146 @@ Second workshop for the Programming 3 course: simulating a video game store in V
 
 # GameZone Unicesar - Core Management System
 
-Sistema integral de gestión comercial, inventario, ventas, promociones, garantías y devoluciones desarrollado para la tienda de videojuegos y tecnología GameZone Unicesar. El proyecto está implementado en Java bajo una arquitectura por capas estricta, aplicando principios de diseño orientado a objetos (SOLID), patrones GRASP y persistencia ligera basada en archivos planos CSV.
+A comprehensive management system for commerce, inventory, sales, promotions, warranties, and returns, developed for the video game and technology store "GameZone Unicesar." The project is implemented in Java using a strict layered architecture, applying object-oriented design principles (SOLID), GRASP patterns, and lightweight persistence based on flat CSV files.
 
 ---
 
-## 1. Arquitectura del Sistema
+## 1. System Architecture
 
-El sistema implementa una arquitectura desacoplada en cuatro capas principales y dos capas transversales de soporte, respetando estrictamente el sentido unidireccional de dependencias (`ui` → `service` → `persistence` → `model`):
+The system implements a decoupled architecture consisting of four primary layers and two cross-cutting support layers, strictly adhering to a unidirectional dependency flow (`ui` → `service` → `persistence` → `model`):
 
 com.gamezone
 
-├── exceptions     <-- [Capa Transversal] Jerarquía tipada de errores no comprobados
+├── exceptions     <-- [Cross-cutting Layer] Typed hierarchy of unchecked exceptions
 
-├── validation     <-- [Capa Transversal] Reglas y restricciones de dominio sin estado
+├── validation     <-- [Cross-cutting Layer] Stateless domain rules and constraints
 
-├── model          <-- [Capa de Dominio] Entidades, jerarquías de productos y reglas de negocio
+├── model          <-- [Domain Layer] Entities, product hierarchies, and business rules
 
-├── persistence    <-- [Capa de Datos] Repositorios con lectura/escritura en archivos CSV
+├── persistence    <-- [Data Layer] Repositories for reading/writing to CSV files
 
-├── service        <-- [Capa de Lógica] Orquestación de casos de uso y transacciones
+├── service        <-- [Logic Layer] Orchestration of use cases and transactions
 
-└── ui             <-- [Capa de Presentación] Interfaz de línea de comandos en consola
+└── ui             <-- [Presentation Layer] Console-based command-line interface
 
-* **Capa de Presentación (`com.gamezone.ui`):** Maneja la interacción con el usuario en consola, captura entradas, formatea salidas y atrapa excepciones diferenciadas sin exponer detalles técnicos.
-* **Capa de Lógica de Negocio (`com.gamezone.service`):** Orquesta los casos de uso, coordina transacciones, delega comprobaciones a la capa de validación y administra los repositorios.
-* **Capa de Acceso a Datos (`com.gamezone.persistence`):** Encapsula el acceso y formateo de archivos planos CSV, traduciendo fallos de I/O en excepciones de persistencia.
-* **Capa de Dominio (`com.gamezone.model`):** Contiene las entidades puras del negocio con encapsulamiento estricto y cálculo polimórfico.
-* **Capa de Validadores (`com.gamezone.validation`):** Clases utilitarias con métodos estáticos para verificar invariantes de negocio antes de la ejecución de servicios.
-* **Capa de Excepciones (`com.gamezone.exceptions`):** Jerarquía de excepciones personalizadas derivadas de `RuntimeException` para comunicación semántica de fallos.
-
----
-
-## 2. Módulos y Funcionalidades Implementadas
-
-### Módulo de Catálogo y Productos (Herencia y Polimorfismo)
-Gestiona el inventario de la tienda mediante la clase abstracta `Product`:
-* **Videojuegos (`VideoGame`):** Plataforma, género y clasificación por edad.
-* **Consolas (`Console`):** Marca, modelo y generación.
-* **Accesorios (`Accessory`):** Extiende de `Product` y modela compatibilidad con consolas:
-    * *Controles (`Controller`):* Tipo de conexión (alámbrico/inalámbrico).
-    * *Cables (`Cable`):* Longitud en metros y tipo de conector (HDMI, USB, óptico, etc.).
-    * *Memorias (`Memory`):* Capacidad en GB y tipo (SD, MicroSD, interna).
-
-### Módulo de Ventas y Personas
-Coordina la interacción comercial del establecimiento:
-* **Personas (`Person`):** Clase abstracta base extendida por `Customer` (clientes) y `Seller` (vendedores).
-* **Venta (`Sale`):** Agrupa productos vendidos, cliente asociado, vendedor responsable, fecha de emisión, cálculo de total, desglose de promociones aplicadas y verificación de plazos.
-
-### Módulo de Promociones y Descuentos
-Aplica estrategias de descuento automático seleccionando la opción más beneficiosa para el cliente (`findBestPromotionFor`):
-* **Porcentaje General (`PercentageDiscount`):** Descuento directo sobre el total de la transacción.
-* **Por Categoría (`CategoryDiscount`):** Descuento aplicado únicamente a los ítems pertenecientes a una categoría específica (`CONSOLE`, `VIDEOGAME`, etc.).
-* **Por Volumen de Compra (`BulkPurchaseDiscount`):** Descuento porcentual condicionado a un número mínimo de unidades[cite: 23, 26, 27].
-
-### Módulo de Garantías
-Formaliza la cobertura técnica de productos vendidos:
-* **Garantía Básica (`BasicWarranty`):** Asignada automáticamente a toda venta de consolas, vigencia de 6 meses sin costo extra.
-* **Garantía Extendida (`ExtendedWarranty`):** Opcional a solicitud del cliente al comprar consolas, vigencia de 12 meses con costo adicional del 10% sobre el valor del equipo.
-* Filtro y consulta de garantías activas y próximas a expirar en un rango de días determinado.
-
-### Módulo de Devoluciones y Balance Mensual
-Control formal de devoluciones y conciliación financiera:
-* **Registro de Devolución (`Return`):** Referencia a la venta original, motivo, fecha de registro y lista parcial o total de productos devueltos.
-* **Reglas de Negocio:** Validación de pertenencia del producto a la venta original y límite estricto de 30 días posteriores a la transacción (`canBeReturned`).
-* **Restauración de Stock:** Reintegro automático de existencias en el inventario al procesar devoluciones conformes.
-* **Balance Mensual:** Cálculo financiero del mes (`Ventas Totales - Devoluciones Totales`).
-
-### Módulo de Validaciones y Excepciones Tipadas
-Capa transversal de control de fallos y validación preventiva:
-* **Jerarquía de Excepciones:**
-    * `GameZoneException`: Raíz abstracta basada en `RuntimeException` con códigos de error.
-    * `ResourceNotFoundException`: Lanzada cuando un ID no existe en el sistema.
-    * `BusinessRuleException`: Reglas de negocio incumplidas (stock insuficiente, plazos vencidos, registros duplicados).
-    * `InvalidDataException`: Datos de entrada nulos, formatos inválidos o rangos numéricos incorrectos.
-    * `PersistenceException`: Envuelve excepciones de I/O preservando la causa técnica sin exponerla al usuario.
-* **Validadores:** `ProductValidator`, `PersonValidator` y `SaleValidator` desacoplan las comprobaciones lógicas de los servicios.
+* **Presentation Layer (`com.gamezone.ui`):** Handles user interaction via the console, captures input, formats output, and catches specific exceptions without exposing technical details.
+* **Business Logic Layer (`com.gamezone.service`):** Orchestrates use cases, coordinates transactions, delegates checks to the validation layer, and manages the repositories. * **Data Access Layer (`com.gamezone.persistence`):** Encapsulates access to and formatting of CSV flat files, translating I/O failures into persistence exceptions.
+* **Domain Layer (`com.gamezone.model`):** Contains pure business entities with strict encapsulation and polymorphic logic.
+* **Validator Layer (`com.gamezone.validation`):** Utility classes with static methods for verifying business invariants prior to service execution.
+* **Exception Layer (`com.gamezone.exceptions`):** A hierarchy of custom exceptions derived from `RuntimeException`, designed for the semantic communication of failures.
 
 ---
 
-## 3. Principios de Diseño y Patrones Aplicados
+## 2. Implemented Modules and Functionalities
 
-* **SRP (Single Responsibility Principle):** Cada clase tiene un único propósito delimitado; las validaciones residen en validadores dedicados, la persistencia en repositorios y el dominio permanece libre de llamadas a disco.
-* **OCP (Open/Closed Principle):** La jerarquía de productos, garantías y promociones permite agregar nuevas variantes mediante herencia y polimorfismo sin modificar los servicios existentes.
-* **LSP (Liskov Substitution Principle):** Las subclases respetan el comportamiento del contrato base sin alterar precondiciones ni lanzar excepciones no soportadas.
-* **ISP (Interface Segregation Principle):** Interfaces y repositorios segregados para no forzar implementaciones innecesarias.
-* **DIP (Dependency Inversion Principle):** Los servicios reciben sus dependencias por inyección en el constructor, desacoplándose de la instanciación interna.
-* **Patrones GRASP:**
-    * *Information Expert:* Los cálculos residen en las clases que poseen la información (`Sale`, `Return`, `Promotion`).
-    * *High Cohesion & Low Coupling:* Mantenido a lo largo del flujo en capas.
-    * *Protected Variations:* La jerarquía de excepciones y modelos protege al sistema de cambios internos en validaciones o formatos de datos.
+### Catalog and Products Module (Inheritance and Polymorphism)
+Manages the store's inventory using the abstract class `Product`:
+* **Video Games (`VideoGame`):** Platform, genre, and age rating.
+* **Consoles (`Console`):** Brand, model, and generation.
+* **Accessories (`Accessory`):** Extends `Product` and models compatibility with consoles:
+  * *Controllers (`Controller`):* Connection type (wired/wireless).
+  * *Cables (`Cable`):* Length in meters and connector type (HDMI, USB, optical, etc.).
+  * *Memory/Storage (`Memory`):* Capacity in GB and type (SD, MicroSD, internal).
+
+### Sales and Personnel Module
+Coordinates the establishment's commercial interactions:
+* **People (`Person`):** An abstract base class extended by `Customer` and `Seller`.
+* **Sale (`Sale`):** Groups together the products sold, the associated customer, the responsible seller, the date of issuance, the total calculation, a breakdown of applied promotions, and verification of relevant timeframes.
+### Promotions and Discounts Module
+Apply automated discount strategies by selecting the option most beneficial to the customer (`findBestPromotionFor`):
+* **General Percentage Discount (`PercentageDiscount`):** A direct discount applied to the total transaction amount.
+* **Category-Based Discount (`CategoryDiscount`):** A discount applied exclusively to items belonging to a specific category (e.g., `CONSOLE`, `VIDEOGAME`).
+* **Bulk Purchase Discount (`BulkPurchaseDiscount`):** A percentage-based discount contingent upon a minimum number of units purchased.
+
+### Warranty Module
+Manage technical coverage for sold products:
+* **Basic Warranty (`BasicWarranty`):** Automatically assigned to all console sales; valid for 6 months at no extra cost.
+* **Extended Warranty (`ExtendedWarranty`):** Optional, available upon customer request when purchasing consoles; valid for 12 months for an additional fee equal to 10% of the device's value.
+* Includes filtering and lookup capabilities for active warranties and those nearing expiration within a specified timeframe.
+
+### Returns and Monthly Balance Module
+Formal control of returns and financial reconciliation:
+* **Return Record (`Return`):** Includes a reference to the original sale, the reason, the date of registration, and a list of the products returned (partial or total).
+* **Business Rules:** Validation that the product belongs to the original sale, with a strict 30-day limit following the transaction (`canBeReturned`).
+* **Stock Restoration:** Automatic replenishment of inventory levels upon processing valid returns.
+* **Monthly Balance:** Financial calculation for the month (`Total Sales - Total Returns`).
+
+### Validations and Typed Exceptions Module
+Cross-cutting layer for error handling and proactive validation:
+* **Exception Hierarchy:**
+* `GameZoneException`: An abstract base class extending `RuntimeException`, incorporating error codes.
+* `ResourceNotFoundException`: Thrown when an ID does not exist in the system.
+* `BusinessRuleException`: Triggered when business rules are violated (e.g., insufficient stock, expired timeframes, duplicate records).
+* `InvalidDataException`: Used for null input data, invalid formats, or incorrect numerical ranges.
+* `PersistenceException`: Wraps I/O-related exceptions, preserving the underlying technical cause without exposing it to the end user.
+* **Validators:** `ProductValidator`, `PersonValidator`, and `SaleValidator` decouple logical checks from the service layer.
 
 ---
 
-## 4. Estructura de Persistencia (Archivos CSV)
+## 3. Design Principles and Applied Patterns
 
-El sistema almacena el estado operativo en archivos de texto plano dentro del directorio `data/`:
+* **SRP (Single Responsibility Principle):** Each class has a single, well-defined purpose; validations reside in dedicated validator classes, persistence is handled by repositories, and the domain layer remains free of disk I/O operations.
+* **OCP (Open/Closed Principle):** The hierarchy of products, warranties, and promotions allows for the addition of new variants through inheritance and polymorphism, without requiring modifications to existing services.
+* **LSP (Liskov Substitution Principle):** Subclasses adhere to the behavior defined by the base contract, without altering preconditions or throwing unsupported exceptions.
+* **ISP (Interface Segregation Principle):** Interfaces and repositories are segregated to avoid forcing classes to implement unnecessary methods.
+* **DIP (Dependency Inversion Principle):** Services receive their dependencies via constructor injection, decoupling them from internal instantiation logic.
+* **GRASP Patterns:**
+* *Information Expert:* Calculations are placed within the classes that possess the necessary information (`Sale`, `Return`, `Promotion`).
+* *High Cohesion & Low Coupling:* Maintained throughout the layered architecture.
+* *Protected Variations:* The hierarchy of exceptions and models shields the system from internal changes, such as modifications to validation logic or data formats.
 
-* `data/product.csv`: Videojuegos, consolas y accesorios diferenciados por columna discriminadora (`videoGame`, `console`, `controller`, `cable`, `memory`).
-* `data/persons.csv`: Registros de clientes (`Customer`) y empleados (`Seller`) con roles y contactos.
-* `data/sales.csv`: Transacciones con formato `saleId,date,customerId,sellerId,productIds,totalAmount,appliedPromo,discountAmount`.
-* `data/warranties.csv`: Garantías emitidas vinculando ID de producto, ID de venta, vigencia y tipo de cobertura.
-* `data/returns.csv`: Historial de devoluciones vinculadas a ventas específicas con montos reintegrados.
-* `data/promotions.csv`: Parámetros, fechas de vigencia y tipos de descuentos vigentes.
+---
+## 4. Persistence Structure (CSV Files)
+
+The system stores its operational state in plain-text files within the `data/` directory:
+
+* `data/product.csv`: Video games, consoles, and accessories, distinguished by a category column (`videoGame`, `console`, `controller`, `cable`, `memory`).
+* `data/persons.csv`: Records of customers (`Customer`) and employees (`Seller`), including their roles and contact information.
+* `data/sales.csv`: Transactions, formatted as `saleId,date,customerId,sellerId,productIds,totalAmount,appliedPromo,discountAmount`.
+* `data/warranties.csv`: Issued warranties, linking product IDs, sale IDs, validity periods, and types of coverage.
+* `data/returns.csv`: A history of returns linked to specific sales, including the amounts refunded.
+* `data/promotions.csv`: Parameters, validity dates, and types of active discounts.
 
 ---
 
-## 5. Requisitos y Ejecución
+## 5. Requirements and Execution
 
-### Requisitos Previos
-* **Java Development Kit (JDK):** Versión 17 o superior.
-* **Apache Maven:** Versión 3.8 o superior.
-* **Git:** Para control de versiones y flujo de trabajo.
+### Prerequisites
+* **Java Development Kit (JDK):** Version 17 or higher.
+* **Apache Maven:** Version 3.8 or higher.
+* **Git:** For version control and workflow.
 
-### Compilación y Empaquetado
-Para compilar el proyecto y verificar que no existan errores sintácticos ni fallas de pruebas:
+### Compilation and Packaging
+To compile the project and verify that there are no syntax errors or test failures:
 ```bash
 mvn clean compile
 ```
-Para generar el archivo ejecutable (JAR):
+To generate the executable file (JAR):
 
 ```bash
 mvn clean package
 ```
 
-Ejecución de la Aplicación
-Para iniciar el sistema por consola interactiva:
+Running the Application
+To start the system via an interactive console:
 ```bash
 java -cp target/gamezone-core-1.0-SNAPSHOT.jar com.gamezone.Main
 ```
 
-## 6. Flujo de Trabajo y Control de Versiones
-El equipo utiliza una adaptación rigurosa de Git Flow con restricciones académicas:
+## 6. Workflow and Version Control
+The team uses a rigorous adaptation of Git Flow with academic constraints:
 
-    Ramas Principales:
-main: Código estable de producción. 
+Main Branches:
+main: Stable production code.
 
-develop: Rama base de desarrollo e integración continua.
-
-
-    Ramas de Funcionalidad:
+develop: Base branch for development and continuous integration.
 
 
-Formato de rama: feature/<nombre-requerimiento>.   
+Feature Branches:
 
-Commits atómicos con mensajes en inglés bajo el estándar Conventional Commits (feat:, refactor:, docs:, fix:).
 
-Integración exclusiva mediante Pull Requests (PRs) revisados y fusionados hacia develop.   
+Branch naming format: feature/<requirement-name>.
+
+Atomic commits with English-language messages following the Conventional Commits standard (feat:, refactor:, docs:, fix:).
+
+Integration exclusively via Pull Requests (PRs) that are reviewed and merged into the develop branch.  
