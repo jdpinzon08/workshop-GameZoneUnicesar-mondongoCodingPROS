@@ -3,6 +3,7 @@ package com.gamezone;
 import com.gamezone.persistence.AccessoryRepository;
 import com.gamezone.persistence.PersonRepository;
 import com.gamezone.persistence.ProductRepository;
+import com.gamezone.persistence.PromotionRepository;
 import com.gamezone.persistence.ReturnRepository;
 import com.gamezone.persistence.SaleRepository;
 import com.gamezone.persistence.WarrantyRepository;
@@ -17,11 +18,14 @@ public class Main {
         AccessoryRepository accessoryRepository = new AccessoryRepository(productRepository);
         PersonRepository personRepository = new PersonRepository("data/persons.csv");
         SaleRepository saleRepository = new SaleRepository();
+        PromotionService promotionService = new PromotionService(
+                new PromotionRepository("data/promotions.csv"), java.util.List.of());
 
         ProductService productService = new ProductService(productRepository);
         PersonService personService = new PersonService(personRepository);
         AccessoryService accessoryService = new AccessoryService(accessoryRepository, productService);
         SaleService saleService = new SaleService(saleRepository, productService, personService);
+        saleService.setPromotionService(promotionService);
 
         WarrantyRepository warrantyRepository = new WarrantyRepository(productService, saleService);
         WarrantyService warrantyService = new WarrantyService(warrantyRepository);
@@ -31,7 +35,7 @@ public class Main {
         ReturnService returnService = new ReturnService(returnRepository, saleService, productService);
 
         ConsoleMenu consoleMenu = new ConsoleMenu(productService, personService, saleService,
-                warrantyService, returnService);
+                warrantyService, returnService, promotionService);
         consoleMenu.start();
     }
 }
